@@ -13,8 +13,8 @@
 \usepackage{graphicx}
 \usepackage[colorinlistoftodos]{todonotes}
 \usepackage[colorlinks=true, allcolors=blue]{hyperref}
-
-\title{Your Paper}
+\usepackage[numbers]{natbib}
+\title{Shared Autonomy Study}
 \author{You}
 
 \begin{document}
@@ -24,83 +24,82 @@
 Your abstract.
 \end{abstract}
 
-\section{Introduction}
+\section{Operator Action Observation}
 
-Your introduction goes here! Some examples of commonly used commands and features are listed below, to help you get started. If you have a question, please use the help menu (``?'') on the top bar to search for help or ask us a question. 
+In order to use our observations of operator actions to update our estimate of $\phi$, we use inverse reinforcement learning to estimate the model of the operator's reward function as parametrized by $\phi$ that best explains the observed operator inputs. Other related works \cite{dragan2012formalizing, javdani2015shared} have used the principles of maximum entropy \cite{ziebart2008maximum} to create a model over trajectory probability distributions, while our approach uses a model over action probability distributions instead such as that used by \citet{ramachandran2007bayesian}. We apply this simplification to action space instead of trajectory space for the reason that the operator input action does not necessarily correspond to the action taken by the system, so the state-operator action pairs are not equivalent to a trajectory. Due to this, we assume that the human optimizes based on individual input actions rather than over trajectories, since they do not have full control over the trajectory. This simplification also allows us to compute the normalizing factor for our distribution analytically, as the action space is small and discrete while the trajectory space is continuous, creating difficulties computing the normalizing factor that may require estimations \cite{javdani2015shared}.
 
-\section{Some examples to get started}
+We define a reward function $R_\phi (x, u_H)$ that estimates the user's reward for taking action $u_H$ in state $x$. This reward function could be defined based on important features such as distance to goal or could be learned from user observations. In this work, we use a reward function corresponding to the anticipated difference in distance to the goal before and after taking action $u_H$: 
+\[
+R_\phi (x, u_H) = dist(x, \phi) - dist(f_x(u_H, x), \phi)
+\]
+Like in \cite{ramachandran2007bayesian}, we use an exponential distribution over reward to model the operator's probability of choosing an action.
+\[
+P(u_H|\phi, x) \propto exp(R_\phi (x, u_H))
+\]
+Since our action space is discrete, we are able to normalize using a summation over possible actions.
+\[
+P(u_H|\phi, x) = \frac{exp(R_\phi (x, u_H))}{\sum_{u'} exp(R_\phi (x, u'))}
+\]
 
-\subsection{How to include Figures}
+Given an observation sequence of states and operator inputs, $\xi = \{x^0, u_H^0, x^1, u_H^1, ..., x^T, u_H^T\}$, we can then define the likelihood of this observation sequence for a given $\phi$ through the following equation:
 
-First you have to upload the image file from your computer using the upload link the project menu. Then use the includegraphics command to include it in your document. Use the figure environment and the caption command to add a number and a caption to your figure. See the code for Figure \ref{fig:frog} in this section for an example.
+\[
+P(\xi|\phi) = \prod_tP(u_H^t|\phi, x^t)
+\]
 
-\begin{figure}
-\centering
-\includegraphics[width=0.3\textwidth]{frog.jpg}
-\caption{\label{fig:frog}This frog was uploaded via the project menu.}
-\end{figure}
+This assumes that the operator's policy is \textit{stationary}, i.e., it does not change through the course of the observation. Consequently, the individual action choices can be considered independent. We apply Bayes theorem to obtain our estimated likelihood of the goal given the current observations.
 
-\subsection{How to add Comments}
+\[
+P(\phi|\xi) = \frac{P(\xi|\phi)P(\phi)}{\sum_{\phi'}P(\xi|\phi')P(\phi')}
+\]
 
-Comments can be added to your project by clicking on the comment icon in the toolbar above. % * <john.hammersley@gmail.com> 2016-07-03T09:54:16.211Z:
-%
-% Here's an example comment!
-%
-To reply to a comment, simply click the reply button in the lower right corner of the comment, and you can close them when you're done.
+Since our \textit{a priori} distribution of goal states is uniform, we can simplify to obtain our final goal likelihood equation:
 
-Comments can also be added to the margins of the compiled PDF using the todo command\todo{Here's a comment in the margin!}, as shown in the example on the right. You can also add inline comments:
+\[
+P(\phi|\xi) = \frac{P(\xi|\phi)}{\sum_{\phi'}P(\xi|\phi')}
+\]
 
-\todo[inline, color=green!40]{This is an inline comment.}
+\section{Expected Information Gain of a New State}
 
-\subsection{How to add Tables}
+In order to quantify the value of the information gain expected from a state, we estimate the reduction in entropy of the current belief state that will result from observing an operator action at that state. To do this, we use the Minimum Expected Entropy approach developed for active learning \cite{holub2008entropy}.
 
-Use the table and tabular commands for basic tables --- see Table~\ref{tab:widgets}, for example. 
+Let the entropy over the goal belief after an observation sequence $\xi$ be given as follows:
 
-\begin{table}
-\centering
-\begin{tabular}{l|r}
-Item & Quantity \\\hline
-Widgets & 42 \\
-Gadgets & 13
-\end{tabular}
-\caption{\label{tab:widgets}An example table.}
-\end{table}
+\[
+H(\xi) = -\frac{\sum_\phi p(\phi|\xi)ln(p(\phi|\xi))}{\sum_\phi p(\phi|\xi)}
+\]
 
-\subsection{How to write Mathematics}
+Assume that a new state action pair is observed, $(x',u_H')$, creating observation sequence $\xi' = \xi \cup (x', u_H')$. The information gain $I$ from this new observation is the difference in entropy before and after the observation.
 
-\LaTeX{} is great at typesetting mathematics. Let $X_1, X_2, \ldots, X_n$ be a sequence of independent and identically distributed random variables with $\text{E}[X_i] = \mu$ and $\text{Var}[X_i] = \sigma^2 < \infty$, and let
-\[S_n = \frac{X_1 + X_2 + \cdots + X_n}{n}
-      = \frac{1}{n}\sum_{i}^{n} X_i\]
-denote their mean. Then as $n$ approaches infinity, the random variables $\sqrt{n}(S_n - \mu)$ converge in distribution to a normal $\mathcal{N}(0, \sigma^2)$.
+\[
+I(\xi, \xi') = H(\xi) - H(\xi')
+\]
+
+However, the difficulty in evaluating the information gain of a state is that $u_H'$ is not known prior to visiting the state. To solve this, we follow the approach of \citet{holub2008entropy} by calculating the expected entropy through looping over all possible user actions at the state and summing each conditional entropy weighted by the likelihood of the user picking the action according to our current belief state about the user's goal, $b(\phi)$.
+
+\[
+\hat{H}(\xi, x') = \sum_u P(u|b(\phi),x')H(\xi \cup (x', u))
+\]
+\[
+= \sum_u \sum_\phi P(u|\phi,x')P(\phi|\xi)H(\xi \cup (x', u))
+\]
+
+Using this expected entropy, we can calculate the expected information gain of going to a new state $x'$ without knowing which action the operator will input.
+
+\[
+\hat{I}(\xi, x') = H(\xi) - \sum_u \sum_\phi P(u|\phi,x')P(\phi|\xi)H(\xi \cup (x', u))
+\]
+
+\section{Action Selection}
+
+While we can pick states that maximize information gain in order to most quickly ascertain the operator's goal, this may result in the system choosing actions that are dramatically opposed to the operator's inputs, creating a frustrating operator experience. Accordingly, when choosing an action, we penalize actions that are far from those input by the operator (as measured by the distance between the control vectors) and reward actions that move to a state with high expected information gain. Additionally, we modulate the importance of information gathering actions by the current entropy in the system: if entropy is high, information gathering actions are more likely to be taken than if entropy is low. Finally, we also include a factor to reward movement toward the goal as determined by the current belief state. This gives us three factors to determine the value of a candidate action: the expected information gain weighted by the current entropy, the distance between the candidate action and the operator input, and the movement toward the expected goal. We combine these three factors linearly with tuning parameters $\alpha$, $\beta$, and $\gamma$ in order to perform action selection.
+
+\[
+u_R = argmax_u [\alpha \hat{I}(\xi, f_x(u,x))H(\xi) - \beta ||u-u_H|| + \gamma \sum_\phi (dist(x, \phi) - dist(f_x(u, x), \phi))P(\phi|\xi)]
+\]
 
 
-\subsection{How to create Sections and Subsections}
-
-Use section and subsections to organize your document. Simply use the section and subsection buttons in the toolbar to create them, and we'll handle all the formatting and numbering automatically.
-
-\subsection{How to add Lists}
-
-You can make lists with automatic numbering \dots
-
-\begin{enumerate}
-\item Like this,
-\item and like this.
-\end{enumerate}
-\dots or bullet points \dots
-\begin{itemize}
-\item Like this,
-\item and like this.
-\end{itemize}
-
-\subsection{How to add Citations and a References List}
-
-You can upload a \verb|.bib| file containing your BibTeX entries, created with JabRef; or import your \href{https://www.overleaf.com/blog/184}{Mendeley}, CiteULike or Zotero library as a \verb|.bib| file. You can then cite entries from it, like this: \cite{greenwade93}. Just remember to specify a bibliography style, as well as the filename of the \verb|.bib|.
-
-You can find a \href{https://www.overleaf.com/help/97-how-to-include-a-bibliography-using-bibtex}{video tutorial here} to learn more about BibTeX.
-
-We hope you find Overleaf useful, and please let us know if you have any feedback using the help menu above --- or use the contact form at \url{https://www.overleaf.com/contact}!
-
-\bibliographystyle{alpha}
+\bibliographystyle{plainnat}
 \bibliography{sample}
 
 \end{document}
