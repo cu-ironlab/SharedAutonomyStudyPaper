@@ -66,7 +66,7 @@ In order to quantify the value of the information gain expected from a state, we
 Let the entropy over the goal belief after an observation sequence $\xi$ be given as follows:
 
 \[
-H(\xi) = -\frac{\sum_\phi p(\phi|\xi)ln(p(\phi|\xi))}{\sum_\phi p(\phi|\xi)}
+H(\xi) = -\sum_\phi p(\phi|\xi)ln(p(\phi|\xi))
 \]
 
 Assume that a new state action pair is observed, $(x',u_H')$, creating observation sequence $\xi' = \xi \cup (x', u_H')$. The information gain $I$ from this new observation is the difference in entropy before and after the observation.
@@ -95,7 +95,7 @@ Using this expected entropy, we can calculate the expected information gain of g
 While we can pick states that maximize information gain in order to most quickly ascertain the operator's goal, this may result in the system choosing actions that are dramatically opposed to the operator's inputs, creating a frustrating operator experience. Accordingly, when choosing an action, we penalize actions that are far from those input by the operator (as measured by the distance between the control vectors) and reward actions that move to a state with high expected information gain. Additionally, we modulate the importance of information gathering actions by the current entropy in the system: if entropy is high, information gathering actions are more likely to be taken than if entropy is low. Finally, we also include a factor to reward movement toward the goal as determined by the current belief state. This gives us three factors to determine the value of a candidate action: the expected information gain weighted by the current entropy, the distance between the candidate action and the operator input, and the movement toward the expected goal. We combine these three factors linearly with tuning parameters $\alpha$, $\beta$, and $\gamma$ in order to perform action selection.
 
 \[
-u_R = argmax_u [\alpha \hat{I}(\xi, f_x(u,x))H(\xi) - \beta ||u-u_H|| + \gamma \sum_\phi (dist(x, \phi) - dist(f_x(u, x), \phi))P(\phi|\xi)]
+u_R = argmax_u [\alpha \hat{I}(\xi, f_x(u,x))H(\xi) - \beta ||\hat{u}-\hat{u_H}|| + \gamma \sum_\phi (dist(x, \phi) - dist(f_x(u, x), \phi))P(\phi|\xi)]
 \]
 
 
