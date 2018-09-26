@@ -1,31 +1,60 @@
-\documentclass[a4paper]{article}
-
-%% Language and font encodings
-\usepackage[english]{babel}
-\usepackage[utf8x]{inputenc}
-\usepackage[T1]{fontenc}
-
-%% Sets page size and margins
-\usepackage[a4paper,top=3cm,bottom=2cm,left=3cm,right=3cm,marginparwidth=1.75cm]{geometry}
-
-%% Useful packages
-\usepackage{amsmath}
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+% The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+\usepackage{natbib}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
 \usepackage{graphicx}
-\usepackage[colorinlistoftodos]{todonotes}
-\usepackage[colorlinks=true, allcolors=blue]{hyperref}
-\usepackage[numbers]{natbib}
-\title{Shared Autonomy Study}
-\author{You}
-
+\usepackage{textcomp}
+\usepackage{xcolor}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \begin{document}
+
+\title{Shared Autonomy Study\\
+\thanks{Identify applicable funding agency here. If none, delete this.}
+}
+
+\author{\IEEEauthorblockN{1\textsuperscript{st} Connor Brooks}
+\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
+\textit{name of organization (of Aff.)}\\
+City, Country \\
+email address}
+\and
+\IEEEauthorblockN{2\textsuperscript{nd} Daniel Szafir}
+\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
+\textit{name of organization (of Aff.)}\\
+City, Country \\
+email address}
+}
+
 \maketitle
 
 \begin{abstract}
-Your abstract.
+Abstract.
 \end{abstract}
 
-\section{Operator Action Observation}
+\section{Introduction}
 
+Story: Good shared autonomy depends on knowing what operator wants
+
+Teaser photo here?
+
+\section{Background}
+
+\subsection{Shared Autonomy}
+
+\subsection{Hindsight Optimization}
+
+Go over history of hindsight optimization including previous results
+
+Briefly give notation for hindsight optimization so that it will line up with notation used in following section
+
+\subsection{Probing Behavior}
+
+\section{Information Gathering in Shared Autonomy}
+
+\subsection{Operator Action Observation}
 In order to use our observations of operator actions to update our estimate of $\phi$, we use inverse reinforcement learning to estimate the model of the operator's reward function as parametrized by $\phi$ that best explains the observed operator inputs. Other related works \cite{dragan2012formalizing, javdani2015shared} have used the principles of maximum entropy \cite{ziebart2008maximum} to create a model over trajectory probability distributions, while our approach uses a model over action probability distributions instead such as that used by \citet{ramachandran2007bayesian}. We apply this simplification to action space instead of trajectory space for the reason that the operator input action does not necessarily correspond to the action taken by the system, so the state-operator action pairs are not equivalent to a trajectory. Due to this, we assume that the human optimizes based on individual input actions rather than over trajectories, since they do not have full control over the trajectory. This simplification also allows us to compute the normalizing factor for our distribution analytically, as the action space is small and discrete while the trajectory space is continuous, creating difficulties computing the normalizing factor that may require estimations \cite{javdani2015shared}.
 
 We define a reward function $R_\phi (x, u_H)$ that estimates the user's reward for taking action $u_H$ in state $x$. This reward function could be defined based on important features such as distance to goal or could be learned from user observations. In this work, we use a reward function corresponding to the anticipated difference in distance to the goal before and after taking action $u_H$: 
@@ -59,7 +88,7 @@ Since our \textit{a priori} distribution of goal states is uniform, we can simpl
 P(\phi|\xi) = \frac{P(\xi|\phi)}{\sum_{\phi'}P(\xi|\phi')}
 \]
 
-\section{Expected Information Gain of a New State}
+\subsection{Expected Information Gain of a New State}
 
 In order to quantify the value of the information gain expected from a state, we estimate the reduction in entropy of the current belief state that will result from observing an operator action at that state. To do this, we use the Minimum Expected Entropy approach developed for active learning \cite{holub2008entropy}.
 
@@ -90,14 +119,31 @@ Using this expected entropy, we can calculate the expected information gain of g
 \hat{I}(\xi, x') = H(\xi) - \sum_u \sum_\phi P(u|\phi,x')P(\phi|\xi)H(\xi \cup (x', u))
 \]
 
-\section{Action Selection}
+\subsection{Action Selection}
+
+TODO: rewrite this subsection entirely; make clear that this is hindsight optimization with probing actions added when entropy is high, pure hindsight optimization when entropy is low
 
 While we can pick states that maximize information gain in order to most quickly ascertain the operator's goal, this may result in the system choosing actions that are dramatically opposed to the operator's inputs, creating a frustrating operator experience. Accordingly, when choosing an action, we penalize actions that are far from those input by the operator (as measured by the distance between the control vectors) and reward actions that move to a state with high expected information gain. Additionally, we modulate the importance of information gathering actions by the current entropy in the system: if entropy is high, information gathering actions are more likely to be taken than if entropy is low. Finally, we also include a factor to reward movement toward the goal as determined by the current belief state. This gives us three factors to determine the value of a candidate action: the expected information gain weighted by the current entropy, the distance between the candidate action and the operator input, and the movement toward the expected goal. We combine these three factors linearly with tuning parameters $\alpha$, $\beta$, and $\gamma$ in order to perform action selection.
+
+TODO: clean up this equation using theta as collection of parameters and collecting each of the three factors into a single variable
 
 \[
 u_R = argmax_u [\alpha \hat{I}(\xi, f_x(u,x))H(\xi) - \beta ||\hat{u}-\hat{u_H}|| + \gamma \sum_\phi (dist(x, \phi) - dist(f_x(u, x), \phi))P(\phi|\xi)]
 \]
 
+\subsection{Behavior}
+
+Some limited analysis of behavior. Heatmap of entropy-minimizing states in 2D. Examples where radically different from hindsight optimization (moving toward two points in a line, for example)
+2-3 Figures here
+
+\section{Experiment Setup}
+
+Experiment design, conditions, tuning choices (no interruptions)
+
+\section{Results and Discussion}
+2-3 Figures here
+
+\section{Future Work}
 
 \bibliographystyle{plainnat}
 \bibliography{sample}
