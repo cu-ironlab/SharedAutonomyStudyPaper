@@ -36,7 +36,7 @@ Abstract.
 
 \section{Introduction}
 
-Story: Good shared autonomy depends on knowing what operator wants
+Story: Good shared autonomy hinges on knowing what operator wants
 
 Citations about users not having to directly select goal
 
@@ -45,14 +45,18 @@ Teaser photo here?
 \section{Background}
 \subsection{Shared Autonomy}
 
-Recent work in shared autonomy and assistive teleoperation has moved toward more relaxed assumptions about what information the robot is given. Earlier noteworthy work assumes that the robot has been given information about the current goal or desired behavior and uses this knowledge to determine assistance strategies \cite{debus2001cooperative, goodrich2001experiments, aigner1997human}. While systems relying on such knowledge can be efficient, this information may not be available in all cases.
+Much work has been done on investigating shared autonomy and assistive teleoperation in an effort to make robot teleoperation more efficient, easier, or safer. Recent work in shared autonomy and assistive teleoperation has moved toward relaxing previously-held assumptions about what information the robot is given about the current task. 
 
-More recently, many studies have demonstrated assistive teleoperation systems that rely on first predicting the user intent, then using a distinct assistive strategy that assists toward the currently predicted user goal \cite{fagg2004extracting, kragic2005human, yu2005telemanipulation, dragan2012formalizing, schultz2017goal}. This framework has the benefit of providing assistance without knowledge of the user's goal, but has a drawback in that the assistance is only available once the current goal has been predicted with sufficient confidence. 
+Early noteworthy work in this domain assumes that the robot has been given information about the current goal or desired behavior and uses this knowledge to determine assistance strategies \cite{aigner1997human, debus2001cooperative, goodrich2001experiments}. While systems relying on such knowledge can be efficient, this information may not be available in all cases.
 
-An exciting recent avenue of study that our work builds on and investigates further is the use of hindsight optimization to assist toward multiple goals simultaneously. \citet{javdani2015shared} setup a partially observable Markov decision process (POMDP) and use QMDP approximation \cite{littman1995learning} to estimate the best action at each timestep. This approximation eliminates information gathering and results in action selection that weights the assistance toward each goal by the current belief in that goal. This enables assistance without a required confidence level for prediction of the user's goal. TODO: go over hindsight optimization experiments.
+Since these foundational works, many studies have demonstrated assistive teleoperation systems that are not given the user's goal ahead of time. Instead, these systems rely on first predicting the user intent, then using a distinct assistive strategy that assists toward the currently predicted user goal \cite{dragan2012formalizing, fagg2004extracting, kragic2005human, schultz2017goal, yu2005telemanipulation}. This framework has the benefit of providing assistance without knowledge of the user's goal, but has a drawback in that the assistance is only available once the current goal has been predicted with sufficient confidence. 
+
+An exciting recent avenue of study that our work builds upon and investigates for new use cases is the use of hindsight optimization to assist toward multiple goals simultaneously. \citet{javdani2015shared} setup a partially observable Markov decision process (POMDP) and use QMDP approximation \cite{littman1995learning}, or hindsight optimization, to estimate the best action at each timestep. This approximation eliminates information gathering and results in action selection that weights the assistance toward each goal by the current belief in that goal. By selecting actions that optimize based on the current belief state over all goals, such a system enables assistance without a required confidence level for prediction of the user's goal. This method was tested on two different shared control teleoperation tasks during which both user and system-generated controls were passed to the robot, with results demonstrating significant improvements in efficiency for the hindsight optimization system over both the previously mentioned "predict-first" strategies and pure teleoperation \cite{javdani2018shared}.
 
 \subsection{Robotic Information Gathering}
+Our work integrates ideas from \citet{sadigh2016information} about robotic actions that actively gather information about human objectives. \citet{sadigh2016information} build a system for an autonomous car that tests how human drivers react to certain "probing" actions of the autonomous car in order to glean information about the human drivers. Their approach is contingent on the idea of using a reward function that minimizes the entropy in the belief state about human drivers' internal states.
 
+Our contributions involve creating a system for incorporating entropy-minimizing information gathering during shared autonomy and evaluation of both this system and a hindsight-optimization based system compared to pure teleoperation on a task involving a multi-tasking or intermittently-present human controller.
 
 \section{Information Gathering in Shared Autonomy}
 \subsection{Formulation}
