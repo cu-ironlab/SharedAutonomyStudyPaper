@@ -11,7 +11,7 @@
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \begin{document}
 
-\title{Shared Autonomy Study\\
+\title{Information Gathering and Hindsight Optimization in Shared Autonomy\\
 \thanks{Identify applicable funding agency here. If none, delete this.}
 }
 
@@ -54,9 +54,9 @@ Since these foundational works, many studies have demonstrated assistive teleope
 An exciting recent avenue of study that our work builds upon and investigates for new use cases is the use of hindsight optimization to assist toward multiple goals simultaneously. \citet{javdani2015shared} setup a partially observable Markov decision process (POMDP) and use QMDP approximation \cite{littman1995learning}, or hindsight optimization, to estimate the best action at each timestep. This approximation eliminates information gathering and results in action selection that weights the assistance toward each goal by the current belief in that goal. By selecting actions that optimize based on the current belief state over all goals, such a system enables assistance without a required confidence level for prediction of the user's goal. This method was tested on two different shared control teleoperation tasks during which both user and system-generated controls were passed to the robot, with results demonstrating significant improvements in efficiency for the hindsight optimization system over both the previously mentioned "predict-first" strategies and pure teleoperation \cite{javdani2018shared}.
 
 \subsection{Robotic Information Gathering}
-Our work integrates ideas from \citet{sadigh2016information} about robotic actions that actively gather information about human objectives. \citet{sadigh2016information} build a system for an autonomous car that tests how human drivers react to certain "probing" actions of the autonomous car in order to glean information about the human drivers. Their approach is contingent on the idea of using a reward function that minimizes the entropy in the belief state about human drivers' internal states.
+Our work integrates ideas from \citet{sadigh2016information} about robotic actions that actively gather information about human objectives. \citet{sadigh2016information} build a system for an autonomous car that tests how human drivers react to certain "probing" actions of the autonomous car in order to glean information about the human drivers. Their approach is based around the idea of using a reward function that minimizes the entropy in the belief state about human drivers' internal states.
 
-Our contributions involve creating a system for incorporating entropy-minimizing information gathering during shared autonomy and evaluation of both this system and a hindsight-optimization based system compared to pure teleoperation on a task involving a multi-tasking or intermittently-present human controller.
+Our contributions include creating a system for incorporating entropy-minimizing information gathering during shared autonomy and evaluation of both this system and a hindsight-optimization based system compared to pure teleoperation on a task involving a multi-tasking or intermittently-present human controller.
 
 \section{Information Gathering in Shared Autonomy}
 \subsection{Formulation}
@@ -97,14 +97,14 @@ Since our \textit{a priori} distribution of goal states is uniform, we can simpl
 P(\phi|\xi) = \frac{P(\xi|\phi)}{\sum_{\phi'}P(\xi|\phi')}
 \]
 
-\subsection{Expected Information Gain of a New State}
+\subsection{Expected Information Gain at a New State}
 
 In order to quantify the value of the information gain expected from a state, we estimate the reduction in entropy of the current belief state that will result from observing an operator action at that state. To do this, we use the Minimum Expected Entropy approach developed for active learning \cite{holub2008entropy}.
 
 Let the entropy over the goal belief after an observation sequence $\xi$ be given as follows:
 
 \[
-H(\xi) = -\sum_\phi p(\phi|\xi)ln(p(\phi|\xi))
+H(\xi) = -\sum_\phi P(\phi|\xi)ln(P(\phi|\xi))
 \]
 
 Assume that a new state action pair is observed, $(x',u_H')$, creating observation sequence $\xi' = \xi \cup (x', u_H')$. The information gain $I$ from this new observation is the difference in entropy before and after the observation.
