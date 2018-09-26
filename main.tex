@@ -1,7 +1,7 @@
 \documentclass[conference]{IEEEtran}
 \IEEEoverridecommandlockouts
 % The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
-\usepackage{natbib}
+\usepackage[numbers]{natbib}
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{algorithmic}
 \usepackage{graphicx}
@@ -41,21 +41,22 @@ Story: Good shared autonomy depends on knowing what operator wants
 Teaser photo here?
 
 \section{Background}
-
 \subsection{Shared Autonomy}
 
-\subsection{Hindsight Optimization}
+Recent work in shared autonomy and assistive teleoperation has moved toward more relaxed assumptions about what information the robot is given. Earlier noteworthy work assumes that the robot has been given information about the current goal or desired behavior and uses this knowledge to determine assistance strategies \cite{debus2001cooperative, goodrich2001experiments, aigner1997human}. While systems relying on such knowledge can be efficient, this information may not be available in all cases.
 
-Go over history of hindsight optimization including previous results
+More recently, many studies have demonstrated assistive teleoperation systems that rely on first predicting the user intent, then using a distinct assistive strategy that assists toward the currently predicted user goal \cite{fagg2004extracting, kragic2005human, yu2005telemanipulation, dragan2012formalizing, schultz2017goal}. This framework has the benefit of providing assistance without knowledge of the user's goal, but has a drawback in that the assistance is only available once the current goal has been predicted with sufficient confidence. 
 
-Briefly give notation for hindsight optimization so that it will line up with notation used in following section
+An exciting recent avenue of study that our work builds on and investigates further is the use of hindsight optimization to assist toward multiple goals simultaneously. \citet{javdani2015shared} setup a partially observable Markov decision process (POMDP) and use QMDP approximation \cite{littman1995learning} to estimate the best action at each timestep. This approximation eliminates information gathering and results in action selection that weights the assistance toward each goal by the current belief in that goal. This enables assistance without confidence in a single goal. TODO: go over hindsight optimization experiments.
 
-\subsection{Probing Behavior}
+\subsection{Robotic Information Gathering}
 
 \section{Information Gathering in Shared Autonomy}
+\subsection{Formulation}
+Give basic information about setup and go over hindishgt optimization notation 
 
 \subsection{Operator Action Observation}
-In order to use our observations of operator actions to update our estimate of $\phi$, we use inverse reinforcement learning to estimate the model of the operator's reward function as parametrized by $\phi$ that best explains the observed operator inputs. Other related works \cite{dragan2012formalizing, javdani2015shared} have used the principles of maximum entropy \cite{ziebart2008maximum} to create a model over trajectory probability distributions, while our approach uses a model over action probability distributions instead such as that used by \citet{ramachandran2007bayesian}. We apply this simplification to action space instead of trajectory space for the reason that the operator input action does not necessarily correspond to the action taken by the system, so the state-operator action pairs are not equivalent to a trajectory. Due to this, we assume that the human optimizes based on individual input actions rather than over trajectories, since they do not have full control over the trajectory. This simplification also allows us to compute the normalizing factor for our distribution analytically, as the action space is small and discrete while the trajectory space is continuous, creating difficulties computing the normalizing factor that may require estimations \cite{javdani2015shared}.
+In order to use our observations of operator actions to update our estimate of $\phi$, we use inverse reinforcement learning to estimate the model of the operator's reward function as parametrized by $\phi$ that best explains the observed operator inputs. Other related works \cite{dragan2012formalizing, javdani2015shared} have used the principles of maximum entropy \cite{ziebart2008maximum} to create a model over trajectory probability distributions, while our approach uses a model over action probability distributions instead such as that used by \citet{ramachandran2007bayesian}. We apply this simplification to action space instead of trajectory space for the reason that the operator input action does not necessarily correspond to the action taken by the system, so the state-operator action pairs are not equivalent to a trajectory. Due to this, we assume that the human optimizes based on individual input actions rather than over trajectories, since they do not have full control over the trajectory. Additionally, we do not assume that the goal positions are static; if goals move during execution, models built using action probability distributions are not affected since each action is parameterized by the current position of all possible goals. This simplification also allows us to compute the normalizing factor for our distribution analytically, as the action space is small and discrete while the trajectory space is continuous, creating difficulties computing the normalizing factor that may require estimations \cite{javdani2015shared}.
 
 We define a reward function $R_\phi (x, u_H)$ that estimates the user's reward for taking action $u_H$ in state $x$. This reward function could be defined based on important features such as distance to goal or could be learned from user observations. In this work, we use a reward function corresponding to the anticipated difference in distance to the goal before and after taking action $u_H$: 
 \[
@@ -139,6 +140,8 @@ Some limited analysis of behavior. Heatmap of entropy-minimizing states in 2D. E
 \section{Experiment Setup}
 
 Experiment design, conditions, tuning choices (no interruptions)
+
+1 Figure here - picture of experiment setup
 
 \section{Results and Discussion}
 2-3 Figures here
