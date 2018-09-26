@@ -38,6 +38,8 @@ Abstract.
 
 Story: Good shared autonomy depends on knowing what operator wants
 
+Citations about users not having to directly select goal
+
 Teaser photo here?
 
 \section{Background}
@@ -47,13 +49,15 @@ Recent work in shared autonomy and assistive teleoperation has moved toward more
 
 More recently, many studies have demonstrated assistive teleoperation systems that rely on first predicting the user intent, then using a distinct assistive strategy that assists toward the currently predicted user goal \cite{fagg2004extracting, kragic2005human, yu2005telemanipulation, dragan2012formalizing, schultz2017goal}. This framework has the benefit of providing assistance without knowledge of the user's goal, but has a drawback in that the assistance is only available once the current goal has been predicted with sufficient confidence. 
 
-An exciting recent avenue of study that our work builds on and investigates further is the use of hindsight optimization to assist toward multiple goals simultaneously. \citet{javdani2015shared} setup a partially observable Markov decision process (POMDP) and use QMDP approximation \cite{littman1995learning} to estimate the best action at each timestep. This approximation eliminates information gathering and results in action selection that weights the assistance toward each goal by the current belief in that goal. This enables assistance without confidence in a single goal. TODO: go over hindsight optimization experiments.
+An exciting recent avenue of study that our work builds on and investigates further is the use of hindsight optimization to assist toward multiple goals simultaneously. \citet{javdani2015shared} setup a partially observable Markov decision process (POMDP) and use QMDP approximation \cite{littman1995learning} to estimate the best action at each timestep. This approximation eliminates information gathering and results in action selection that weights the assistance toward each goal by the current belief in that goal. This enables assistance without a required confidence level for prediction of the user's goal. TODO: go over hindsight optimization experiments.
 
 \subsection{Robotic Information Gathering}
 
+
 \section{Information Gathering in Shared Autonomy}
 \subsection{Formulation}
-Give basic information about setup and go over hindishgt optimization notation 
+
+Give basic information about setup and go over hindsight optimization notation 
 
 \subsection{Operator Action Observation}
 In order to use our observations of operator actions to update our estimate of $\phi$, we use inverse reinforcement learning to estimate the model of the operator's reward function as parametrized by $\phi$ that best explains the observed operator inputs. Other related works \cite{dragan2012formalizing, javdani2015shared} have used the principles of maximum entropy \cite{ziebart2008maximum} to create a model over trajectory probability distributions, while our approach uses a model over action probability distributions instead such as that used by \citet{ramachandran2007bayesian}. We apply this simplification to action space instead of trajectory space for the reason that the operator input action does not necessarily correspond to the action taken by the system, so the state-operator action pairs are not equivalent to a trajectory. Due to this, we assume that the human optimizes based on individual input actions rather than over trajectories, since they do not have full control over the trajectory. Additionally, we do not assume that the goal positions are static; if goals move during execution, models built using action probability distributions are not affected since each action is parameterized by the current position of all possible goals. This simplification also allows us to compute the normalizing factor for our distribution analytically, as the action space is small and discrete while the trajectory space is continuous, creating difficulties computing the normalizing factor that may require estimations \cite{javdani2015shared}.
