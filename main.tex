@@ -43,7 +43,7 @@ Citations about users not having to directly select goal
 Teaser photo here?
 
 \section{Background}
-\subsection{Shared Autonomy}
+\subsection{Goal Prediction in Shared Autonomy}
 
 Much work has been done on investigating shared autonomy and assistive teleoperation in an effort to make robot teleoperation more efficient, easier, or safer. Recent work in shared autonomy and assistive teleoperation has moved toward relaxing previously-held assumptions about what information the robot is given about the current task. 
 
@@ -53,10 +53,16 @@ Since these foundational works, many studies have demonstrated assistive teleope
 
 An exciting recent avenue of study that our work builds upon and investigates for new use cases is the use of hindsight optimization to assist toward multiple goals simultaneously. \citet{javdani2015shared} setup a partially observable Markov decision process (POMDP) and use QMDP approximation \cite{littman1995learning}, or hindsight optimization, to estimate the best action at each timestep. This approximation eliminates information gathering and results in action selection that weights the assistance toward each goal by the current belief in that goal. By selecting actions that optimize based on the current belief state over all goals, such a system enables assistance without a required confidence level for prediction of the user's goal. This method was tested on two different shared control teleoperation tasks during which both user and system-generated controls were passed to the robot, with results demonstrating significant improvements in efficiency for the hindsight optimization system over both the previously mentioned "predict-first" strategies and pure teleoperation \cite{javdani2018shared}.
 
-\subsection{Robotic Information Gathering}
-Our work integrates ideas from \citet{sadigh2016information} about robotic actions that actively gather information about human objectives. \citet{sadigh2016information} build a system for an autonomous car that tests how human drivers react to certain "probing" actions of the autonomous car in order to glean information about the human drivers. Their approach is based around the idea of using a reward function that minimizes the entropy in the belief state about human drivers' internal states.
+\subsection{Active Information Gathering over Human State}
+Our novel shared autonomy system integrates robotic actions that actively gather information about human objectives. We were inspired by the work of \citet{sadigh2016information} on building a system for an autonomous car that tests how human drivers react to certain "probing" actions of the autonomous car in order to glean information about the human drivers. Their approach centers on using a reward function that minimizes the entropy of the belief state about human drivers' internal states.
+In the same spirit, \citet{liu2017bignav} create a system for user view navigation that outperforms pan and zoom methods by displaying views to a user that maximize information gain. Their system uses the same principle of information gain to choose new views as a user navigates through a large multiscale interface in order to more quickly ascertain the user's ultimate intended view.
 
-Our contributions include creating a system for incorporating entropy-minimizing information gathering during shared autonomy and evaluation of both this system and a hindsight-optimization based system compared to pure teleoperation on a task involving a multi-tasking or intermittently-present human controller.
+\subsection{Shared Autonomy for a Multi-Tasking Operator}
+One measure of the usefulness of a robot's autonomy is the ability of human operators to neglect the robot \cite{crandall2002characterizing, olsen2003metrics}. The ability of the robot to carry on with its task while neglected allows human operators to attend to other tasks, such as operating other robots \cite{crandall2005validating, cummings2008predicting}.
+
+In our study, we apply two shared autonomy systems to a task that requires human operators to only have intermittent control of the robot as they must perform other tasks simultaneously. This setup is intended to demonstrate the potential of shared autonomy to increase the neglect tolerance of the robot, even without prior knowledge of the operator's exact goal.
+
+Our contributions include creating a system for incorporating information gathering during shared autonomy, as well as evaluation of both this system and a hindsight-optimization based system compared to pure teleoperation on a task involving a multi-tasking human operator.
 
 \section{Information Gathering in Shared Autonomy}
 \subsection{Formulation}
@@ -101,14 +107,14 @@ P(\phi|\xi) = \frac{P(\xi|\phi)}{\sum_{\phi'}P(\xi|\phi')}
 
 We incorporate hindsight optimization \cite{javdani2015shared} into our formulation by evaluating our reward function over a belief state. This gives us an estimate of the state-action value function that weights the reward for each state-action pair according to the current belief state. Using $b$ that encodes our belief state at time $t$:
 \[
-b(\phi) = P(\phi|\xi^t)
+b_t(\phi) = P(\phi|\xi^t)
 \]
 Then, we apply the hindsight optimization approximation to estimate the value for each state-action pair:
 \[
-Q^{HO}(x,u,b) = \mathbb{E}_\phi[R_\phi (x, u)]
+Q^{HO}(x,u,b_t) = \mathbb{E}_\phi[R_\phi (x, u)]
 \]
 \[
-=\sum_\phi R_\phi (x, u_H)b(\phi)
+=\sum_\phi R_\phi (x, u_H)b_t(\phi)
 \]
 
 \subsection{Expected Information Gain at a New State}
@@ -161,10 +167,10 @@ H & H\geq 0.1 \\
 \end{cases}
 ,f_2(H) = \frac{1}{f_1(H)}
 \]
-This gives us three factors to determine the value of a candidate action: the expected information gain weighted by the current entropy, the movement toward the expected goal weighted by the inverse of the current entropy, and the distance between the candidate action and the operator input. We also add tuning parameters $\alpha$, $\beta$, and $\gamma$ to adjust the magnitude of each factor. Combining all the tuning parameters gives us our parameter vector $\theta = [\alpha f_1(H), \beta f_2(H), \gamma]$ that we use in order to perform action selection.
+This gives us three factors to determine the value of a candidate action: the expected information gain weighted by the current entropy, the movement toward the expected goal weighted by the inverse of the current entropy, and the distance between the candidate action and the operator input. We also add tuning parameters $\alpha$, $\beta$, and $\gamma$ to adjust the magnitude of each factor. Combining all the tuning parameters gives us our weight vector $\theta = [\alpha f_1(H), \beta f_2(H), \gamma]$ that we use in order to perform action selection.
 
 \[
-u^* = argmax_u [ \theta \cdot [\hat{I}(\xi, T(x,u)), Q^{HO}(x,u,b), D_{u_H}]^T ]
+u^* = argmax_u [ \theta \cdot [\hat{I}(\xi, T(x,u)), Q^{HO}(x,u,b_t), D_{u_H}(u)]^T ]
 \]
 
 \subsection{Behavior}
@@ -172,7 +178,14 @@ u^* = argmax_u [ \theta \cdot [\hat{I}(\xi, T(x,u)), Q^{HO}(x,u,b), D_{u_H}]^T ]
 Some limited analysis of behavior. Heatmap of entropy-minimizing states in 2D. Examples where radically different from hindsight optimization (moving toward two points in a line, for example)
 2-3 Figures here
 
-\section{Experiment Setup}
+\section{User Study}
+
+\subsection{Implementation Details}
+Tuning choices (no interruptions), Controls update rate (and why so slow - planning time accommodation), etc..
+
+\subsection{Experiment Setup}
+
+
 
 Experiment design, conditions, tuning choices (no interruptions)
 
