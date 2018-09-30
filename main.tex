@@ -12,17 +12,18 @@
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 \begin{document}
 
-\title{Balanced Information Gathering and Hindsight Optimization for Multitasking Teleoperators\\
-\thanks{Identify applicable funding agency here. If none, delete this.}
+\title{Active Information Gathering and Goal-Oriented Actions in Shared Autonomy for Multitasking Teleoperators\\
+%Blind review
+%thanks{Identify applicable funding agency here. If none, delete this.}
 }
 
-\author{\IEEEauthorblockN{1\textsuperscript{st} Connor Brooks}
+\author{\IEEEauthorblockN{1\textsuperscript{st} Blind Review Author 1}
 \IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
 \textit{name of organization (of Aff.)}\\
 City, Country \\
 email address}
 \and
-\IEEEauthorblockN{2\textsuperscript{nd} Daniel Szafir}
+\IEEEauthorblockN{2\textsuperscript{nd} Blind Review Author 2}
 \IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
 \textit{name of organization (of Aff.)}\\
 City, Country \\
@@ -32,24 +33,26 @@ email address}
 \maketitle
 
 \begin{abstract}
-In this paper, we introduce the concept of active learning into a shared autonomy control system. We do this through applying the ideas of information gain by selecting states that minimize entropy in the belief state over possible operator goals. We create a system for interweaving information gathering actions with goal-oriented actions, and we run a study that compares our system to both pure teleoperation and a state-of-the-art goal-oriented shared autonomy system using hindsight optimization. We evaluate these systems for use cases involving multitasking or distracted operators, and note significant improvements for both shared autonomy systems over pure teleoperation. Additionally, we find some trade-offs between information gathering and goal-oriented controls that could help inform the scenarios in which one strategy may be more advantageous than another.
+Teleoperation of robotic system can be a complex task due to factors such as high degree-of-freedom manipulators, operator inexperience, and operator situational awareness. In order to address the complexity of this task, researchers have developed shared autonomy as a paradigm of control that involves the shared control of a robot by a human teleoperator and an autonomous control system. We introduce the concept of active learning into a shared autonomy control system. Our approach centers on applying the ideas of information gain through creating an autonomous system that applies information gathering actions: actions that move to robot positions that help the autonomous system minimize its uncertainty about possible operator goals based on the operator's next action. We create a system for interweaving these information gathering actions with goal-oriented actions. We conduct an evaluation for use cases involving multitasking or distracted operators that compares pure teleoperation with two forms of shared autonomy systems: our system and a state-of-the-art goal-oriented shared autonomy system. We note significant improvements for both shared autonomy systems over pure teleoperation, and we additionally find some trade-offs between information gathering and goal-oriented actions that could help inform the scenarios in which one strategy may be more advantageous than the other.
 \end{abstract}
 
 \section{Introduction}
 
-Shared autonomy \cite{dragan2012formalizing} provides a means for the advances in autonomous control systems to empower humans operating a robot. This can be especially useful in cases in which the human operator is unable to provide sufficient control input, whether due to inexperience with the system, operator distraction, physical limitation, or some other factor. Shared autonomy enables robots to make use of both the information that is provided by a human operator and the robot's own internal control system. In order for these two sources of control to work together at maximum efficiency, it is critical that they have the same goal.
-
-Previous work has suggested that it is better for robots to use natural and implicit cues from humans rather than requiring explicit communication \cite{goodrich2003seven}. In shared autonomy, this can take the form of learning from operator actions about what the operator wants. In this case, the operator does not have to use explicit communication to direct the robot as to which goal the shared autonomy system should be assisting toward, but instead the robot builds a belief model of possible goals by observating the controls input by the operator at different states. Intuitively, this involves abstracting the operator's individual actions to see them as a part of a larger goal-oriented policy.
-
-We want robots to be able to perform this observe-and-learn task as efficiently as possible. There are two fundamental ways to address this: first, adjusting the model of how the robot learns from each state-action pair observed, and second, adjusting what state-action pairs the robot will observe - i.e., \textit{active learning}. In this paper, we investigate active learning through information gathering during shared autonomy, as to our knowledge this approach has not been previously studied for shared autonomy situations.
-
-This approach involves the robotic system manipulating the states at which actions will be observed based on the amount of knowledge the robot expects to gain from different states. In doing so, the system hopes to gain information more efficiently from the operator. The operator changes nothing about their behavior and still provides the same implicit cues, but information is gained more rapidly through exploiting areas where the inferred internal policy of the operator is maximally different for different candidate goals. In this paper, we create such a system and examine its effects in a user study involving shared autonomy control for a multitasking operator.
+Shared autonomy is a robotic control paradigm that provides a means for the advances in autonomous control systems to empower humans operating a robot through blending autonomous control with human operation control inputs \cite{dragan2012formalizing, dragan2013policy, gopinath2017human}. This control paradigm can be especially useful in cases in which the human operator is unable to provide sufficient control input, whether due to inexperience with the system, operator distraction, physical limitation, or some other factor. Shared autonomy enables robots to make use of both the information that is provided by a human operator and the robot's own internal control and perception systems. In order for these two sources of control to work together effectively, it is critical that they have the same goal.
 
 \begin{figure}
 \missingfigure[figwidth=1\columnwidth]{Teaser Photo}
 \caption{A participant controls a robot during a multi-tasking user study}
 \label{teaser}
 \end{figure}
+
+Previous work has suggested that one design goal in facilitating better human-robot interaction is to enable the robot to understand natural and implicit cues from humans rather than only supporting explicit communication \cite{goodrich2003seven}. In shared autonomy, robots might similarly learn about operator goals in an implicit manner by observing operator control actions. This supports more fluid implicit communication and avoids forcing the operator to explicitly designate their desired goal, which may be difficult due to the interaction paradigm being used (i.e., only a joystick), the goal states being hard to describe due to high degree-of-freedom state space, or other factors. Rather than requiring the operator to explicitly designate their desired goal, the robot in a shared autonomy system builds a belief model of possible goals by observing the control actions input by the operator at different states. Intuitively, this involves abstracting the operator's individual actions to see them as a part of a larger goal-oriented policy.
+
+We want robots to be able to perform this observe-and-learn task as efficiently as possible. There are two fundamentally different ways of approaching this: first, adjusting the model of how the robot learns from what it happens to observe, and second, adjusting what the robot will observe in order to help it learn - i.e., \textit{active learning}. In this paper, we investigate active learning through information gathering within a shared autonomy paradigm.
+
+This approach involves the robotic system manipulating the states, or robot positions, at which actions will be observed based on the amount of knowledge the robot expects to gain from different states. In doing so, the system hopes to gain information more efficiently through greater information gain from each operator action observed. The operator changes nothing about their behavior and still provides the same implicit cues, but information is gained more rapidly through exploiting areas where the inferred internal policy of the operator is maximally different for different candidate goals. We refer to this strategy of moving toward information-rich states as information gathering actions, which contrasts with taking actions that move toward what are believed to be the operator's current goals, what we call goal-oriented actions. 
+
+In this paper, we create such a system and examine its effects in a user study involving shared autonomy control for a multitasking operator. Our contributions include creating a system for incorporating information gathering during shared autonomy, as well as evaluation of both this system and a goal-oriented shared autonomy system compared to pure teleoperation on a task involving a multi-tasking human operator.
 
 \section{Background}
 \subsection{Goal Prediction in Shared Autonomy}
@@ -71,8 +74,6 @@ Our novel shared autonomy system integrates robotic actions that actively gather
 One measure of the usefulness of a robot's autonomy is the ability of human operators to neglect the robot \cite{crandall2002characterizing, olsen2003metrics}. The ability of the robot to carry on with its task while neglected allows human operators to attend to other tasks, such as operating other robots \cite{crandall2005validating, cummings2008predicting}.
 
 In our study, we apply two shared autonomy systems to a task that requires human operators to only have intermittent control of the robot as they must perform other tasks simultaneously. This setup is intended to demonstrate the potential of shared autonomy to increase the neglect tolerance of the robot, even without prior knowledge of the operator's exact goal.
-
-Our contributions include creating a system for incorporating information gathering during shared autonomy, as well as evaluation of both this system and a hindsight-optimization based system compared to pure teleoperation on a task involving a multi-tasking human operator.
 
 \section{Information Gathering in Shared Autonomy}
 \subsection{Formulation}
