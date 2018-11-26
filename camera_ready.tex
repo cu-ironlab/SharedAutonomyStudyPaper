@@ -102,7 +102,7 @@ We define a reward function $R_\phi (x, u)$ that estimates the value of choosing
 \[
 R_\phi (x, u) = dist(x, \phi) - dist(T(x, u), \phi)
 \]
-Like in \cite{ramachandran2007bayesian}, we use an exponential distribution over reward to model the user's probability of choosing an action:
+Similarly to \citet{ramachandran2007bayesian}, we use a Boltzmann distribution over reward to model the user's probability of choosing an action:
 \[
 P(u_H|\phi, x) \propto exp(R_\phi (x, u_H))
 \]
