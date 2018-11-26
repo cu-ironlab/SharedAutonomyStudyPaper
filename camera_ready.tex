@@ -1,0 +1,344 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+% The preceding line is only needed to identify funding in the first footnote. If that is unneeded, please comment it out.
+\usepackage[numbers]{natbib}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{todonotes}
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+    
+    
+\setlength{\abovecaptionskip}{0pt plus 3pt minus 2pt}
+
+\setlength{\abovedisplayskip}{2pt}
+\setlength{\belowdisplayskip}{2pt}
+    
+\begin{document}
+
+\title{Balanced Information Gathering and Goal-Oriented Actions in Shared Autonomy
+%Blind review
+%thanks{Identify applicable funding agency here. If none, delete this.}
+}
+
+%\author{\IEEEauthorblockN{1\textsuperscript{st} Blind Review Author 1}
+%\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
+%\textit{name of organization (of Aff.)}\\
+%City, Country \\
+%email address}
+%\and
+%\IEEEauthorblockN{2\textsuperscript{nd} Blind Review Author 2}
+%\IEEEauthorblockA{\textit{dept. name of organization (of Aff.)} \\
+%\textit{name of organization (of Aff.)}\\
+%City, Country \\
+%email address}
+%}
+
+\author{\IEEEauthorblockN{AUTHOR INFORMATION REDACTED FOR DOUBLE BLIND REVIEW}}
+
+\maketitle
+
+\begin{abstract}
+Robotic teleoperation can be a complex task due to factors such as high degree-of-freedom manipulators, operator inexperience, and operator situational awareness. In order to address the complexity of this task, researchers have developed shared autonomy as a control paradigm that involves the joint control of a robot by a human user and an autonomous control system. We introduce the concept of active learning into shared autonomy by developing a method for systems to leverage \textit{information gathering}: minimizing the system's uncertainty about user goals by moving to information-rich states to observe user input. We create a system for balancing these information gathering actions, which help the system gain information about user goals, with goal-oriented actions, which move the robot towards the goal the system has inferred from the user. We conduct an evaluation within the context of multitasking users that compares pure teleoperation with two forms of shared autonomy systems: our balanced system and a state-of-the-art purely goal-oriented system. Our results show significant improvements for both shared autonomy systems over pure teleoperation in terms of belief convergence about the user's goal and task completion speed and reveal trade-offs across shared autonomy strategies that may inform future investigations in this space.
+\end{abstract}
+
+\section{Introduction}
+
+Shared autonomy is a robotic control paradigm that blends user input with an underlying autonomous control system \cite{dragan2012formalizing, dragan2013policy, gopinath2017human}. This control paradigm can be especially useful in cases where human users interact with high degree-of-freedom systems and are unable to provide sufficient control input, whether due to inexperience with the system, user distraction, physical or cognitive limitations, or some other factor. Shared autonomy enables robots to make use of both the information that is provided by a human user and the robot's own internal control and perception systems. In order for these two sources of control to work together effectively, it is critical that they share a common goal.
+
+\begin{figure}
+\includegraphics[width=\columnwidth]{figures/teaser-v2.jpg}
+\caption{A participant controls a robot during a multitasking user study}
+\label{teaser}
+\end{figure}
+
+Previous work has suggested that one method of facilitating better human-robot interaction is to improve robot understanding of natural and implicit cues from humans rather than only supporting explicit communication \cite{goodrich2003seven}. In shared autonomy, robots might similarly learn about user goals in an implicit manner by observing user control actions rather than requiring users to explicitly communicate their goals to the underlying system. Implicitly learning user goals may support more fluid interaction and better support scenarios in which explicit goal designation is infeasible due to limitations in user controls (e.g., only a joystick), the goal states being hard to describe due to high degree-of-freedom state space, or other factors. To learn user goals, shared autonomy systems build a belief model of possible goals by observing the control actions input by the user at different states. Intuitively, this involves abstracting the user's individual actions to see them as a part of a larger goal-oriented policy.
+
+To improve the system's performance in a framework involving system learning from observed user actions, there are two distinct factors of the framework that can be manipulated: (1) the model of how the system learns from user actions, or (2) what user actions are observed (i.e., \textit{active learning}). In this paper, we investigate active learning through information gathering actions within a shared autonomy paradigm.
+
+This approach chooses robot configurations to move toward according to the amount of information the robot expects to gain from the user when user actions are next observed. The user changes nothing about their behavior and still provides the same implicit cues (control inputs), but information is gained more rapidly through exploiting areas where the inferred internal policy of the user is maximally different for different candidate goals. We refer to this strategy of moving toward information-rich states as \textit{information gathering actions}, which contrasts with \textit{goal-oriented} actions that move toward what are believed to be the user's current goals.
+
+In this paper, we create a system that balances information gathering and goal-oriented actions and explore its utility in a user study involving shared autonomy control for a multitasking user. Our contributions include creating a system for incorporating information gathering during shared autonomy, as well as evaluation of both this system and a purely goal-oriented shared autonomy system compared to pure teleoperation on a task involving a multitasking human user.
+
+\section{Background}
+
+Our approach draws on prior work from goal-oriented shared autonomy systems and research on active learning and information gathering.
+
+\subsection{Goal Prediction in Shared Autonomy}
+
+Prior research has investigated shared autonomy and assistive teleoperation in an effort to make robot teleoperation easier, safer, and more efficient.
+
+Early shared autonomy systems assumed that the robot would be given information about the current user goal or desired behavior. These systems used this knowledge to determine assistance strategies that helped users accomplish their predefined goal \cite{aigner1997human, debus2001cooperative, goodrich2001experiments}. While systems relying on such knowledge can be efficient, we are interested in creating more fluid interaction that does not require the overhead of explicit communication of user goals.
+
+Recent work in shared autonomy and assistive teleoperation has moved toward relaxing previously-held assumptions about what information the robot is given about the current task. Many of these more recent studies have demonstrated assistive teleoperation systems that are not given the user's goal ahead of time. Instead, these systems rely on first predicting user intent, then using a distinct goal-oriented strategy that assists toward the currently predicted user goal \cite{dragan2012formalizing, fagg2004extracting, kragic2005human, schultz2017goal, yu2005telemanipulation}. This ``predict-first'' framework has the benefit of providing assistance without \textit{a priori} knowledge of the user's goal, but has a drawback in that the goal-oriented assistance is only available once the current goal has been predicted with sufficient confidence.
+
+An exciting recent avenue of study that our work builds upon and investigates for new use cases is the use of hindsight optimization approximations in selecting assistance actions. This technique creates an approach for providing shared autonomy assistance in the presence of multiple potential goals. \citet{javdani2015shared} set up a partially observable Markov decision process (POMDP) and use QMDP approximation \cite{littman1995learning}, or hindsight optimization, to estimate the best robot action at each timestep. This approximation eliminates information gathering from the POMDP solution and results in system action selection that weights the assistance toward each goal by the current belief in that goal. By selecting actions that optimize based on the current belief state over all goals, such a system enables goal-oriented assistance without a required confidence level for prediction of the user's goal. 
+
+This method was tested on two different shared control teleoperation tasks during which both user and system-generated controls were passed to the robot, with results demonstrating significant improvements in efficiency for the hindsight optimization system over both pure teleoperation strategies and the previously mentioned predict-first strategies \cite{javdani2018shared}. While this is a promising approach to goal-oriented assistance, it does not utilize the potential for shared autonomy systems to explore the state space in order to better learn about the user's goals.
+
+\subsection{Active Information Gathering over Human State}
+Our novel shared autonomy system makes use of exploration by integrating robotic actions that actively gather information about human objectives. We were inspired by the work of \citet{sadigh2016information} on building a system for an autonomous car that tests how human drivers react to certain ``probing" actions of the autonomous car (e.g., starting to merge in front of a human driver) in order to glean information about some factor of the driver's internal state (e.g., a driver's aggressiveness). Their approach centers on using a reward function that minimizes the entropy of the belief state over human drivers' internal states. We apply this idea of choosing actions that minimize entropy in the belief state to shared autonomy, where the belief state is over user goals.
+
+\citet{liu2017bignav} apply a similar strategy in creating a system for user view navigation that outperforms traditional pan and zoom methods by displaying views to a user that maximize information gain. Their system uses the same principle of information gain (i.e., minimizing belief state entropy) to choose new views as a user navigates through a large multiscale interface in order to more quickly ascertain the user's ultimate intended view.
+
+\subsection{Shared Autonomy for a Multitasking User}
+We believe that one promising class of use cases in which shared autonomy systems can prove useful is cases involving a human user whom is intermittently absent: for example, scenarios in which a user is also tasked with handling other periodic duties that will cause them to relinquish robot control on a regular basis. In such scenarios, neglect tolerance, or the ability of human users to neglect the robot \cite{crandall2002characterizing, olsen2003metrics}, can provide a userful measurement regarding the capability of the robot's autonomy. The ability of the robot to carry on with its task while unsupervised allows human users to attend to other tasks, such as operating other robots \cite{crandall2005validating, cummings2008predicting}, conducting data analysis, or performing other essential operations. In this work, we investigate how shared autonomy systems might support human users in a task where users only have intermittent control of the robot and perform other tasks simultaneously (such as monitoring and logging sensor readings). 
+
+\section{Information Gathering in Shared Autonomy}\label{formulation}
+
+In this section, we describe our formulation for active information gathering during shared autonomy.
+
+\subsection{Formulation}
+
+Let $ x \in X $ represent the system state. This could encompass just the robot joint position, a more involved model including physical constraints, or some other representation (in our implementation, state represented the position of the robot's end effector in 3D space and a momentum factor consisting of the currently active movement plan's direction). We assume that the user in our teleoperation system has a unique goal in mind, $\phi \in \Phi$. Actions are represented by $ u \in U $, including both actions input by the user or actions actuated by the robot. We use $u_H$ to denote user-input actions. We also assume access to a model of the system transition function, $T: X \times U \rightarrow X$.
+
+\subsection{User Action Observation}
+In order to use our observations of user actions at each timestep $u_H^t$ to update our estimate of $\phi$, we find the model of the user's reward function as parametrized by $\phi$ that best explains the observed user inputs. Other related research has used the principle of maximum entropy \cite{ziebart2008maximum} to create a model over trajectory probability distributions \cite{dragan2012formalizing, javdani2015shared}, while our approach uses a model over action probability distributions inspired by the approach introduced by  \citet{ramachandran2007bayesian} that has also been used for prediction of human action selection parametrized by potential goals \cite{fisac2018probabilistically}. We apply this simplification to action space instead of trajectory space because user input actions do not necessarily correspond to actions taken by the system, thus the state-user action pairs are not equivalent to a trajectory. With this in mind, we assume that the human optimizes based on individual input actions rather than over trajectories, since they do not have full control over the trajectory. Additionally, we do not assume that the goal positions are static; if goals move during execution, models built using action probability distributions are not affected since each action is parameterized by the current position of all possible goals. This simplification also allows us to compute the normalizing factor for our distribution analytically, as the action space is small and discrete, compared to using a continuous trajectory space, which would require us to estimate the normalizing factor \cite{javdani2015shared}.
+
+We define a reward function $R_\phi (x, u)$ that estimates the value of choosing action $u$ in state $x$ while attempting to reach goal $\phi$. This reward function could be defined based on important features such as distance to goal or could be learned from user observations. In this work, we use a reward function corresponding to the anticipated difference in distance to the goal before and after taking action $u$:
+\[
+R_\phi (x, u) = dist(x, \phi) - dist(T(x, u), \phi)
+\]
+Like in \cite{ramachandran2007bayesian}, we use an exponential distribution over reward to model the user's probability of choosing an action:
+\[
+P(u_H|\phi, x) \propto exp(R_\phi (x, u_H))
+\]
+Since our action space is discrete, we are able to normalize using a summation over possible actions:
+\[
+P(u_H|\phi, x) = \frac{exp(R_\phi (x, u_H))}{\sum_{u'} exp(R_\phi (x, u'))}
+\]
+
+Given an observation sequence of states and user inputs, $\xi^T = \{(x^0, u_H^0), (x^1, u_H^1), ..., (x^T, u_H^T)\}$, we can then define the likelihood of this observation sequence for a given $\phi$ through the following equation:
+
+\[
+P(\xi|\phi) = \prod_tP(u_H^t|\phi, x^t)
+\]
+
+This assumes that the user's policy is \textit{stationary}, i.e., it does not change through the course of the observation. Consequently, the individual action choices can be considered independent. We apply Bayes theorem to obtain our estimated likelihood of the goal given the current observations:
+
+\[
+P(\phi|\xi) = \frac{P(\xi|\phi)P(\phi)}{\sum_{\phi'}P(\xi|\phi')P(\phi')}
+\]
+
+Since our \textit{a priori} distribution of goal states is uniform, we can simplify to obtain our final goal likelihood equation:
+
+\[
+P(\phi|\xi) = \frac{P(\xi|\phi)}{\sum_{\phi'}P(\xi|\phi')}
+\]
+
+\subsection{Goal-Oriented Actions through Hindsight Optimization}
+
+We incorporate goal-oriented actions into our system by including a scoring term that uses the hindsight optimization technique introduced by \citet{javdani2015shared} for estimating the state-action value function. Recall that $R_\phi(s, u)$ represents the state-action reward function for goal $\phi$. The basic approach of hindsight optimization involves estimating the reward for a state-action pair, $R(s, u)$, despite not knowing $\phi$, by summing over $\Phi$. This gives an estimate of the true state-action reward function (the reward function parameterized by the human's true goal) by weighting each goal according to the current belief state. Formally, let $b$ encode our belief state at time $t$:
+\[
+b_t(\phi) = P(\phi|\xi^t)
+\]
+We apply the hindsight optimization approximation to estimate the reward $R^{HO}$ for each state-action pair given the current belief state:
+\[
+R^{HO}_{b_t}(x,u) = \mathbb{E}_\phi[R_\phi (x, u)]
+\]
+\[
+=\sum_\phi R_\phi (x, u_H)b_t(\phi)
+\]
+
+\subsection{Expected Information Gain at a New State}
+
+In order to quantify the value of the information gain expected from a state, we estimate the reduction in entropy of the current belief state that will result from observing an user action at that state. To do this, we use the Minimum Expected Entropy approach developed for active learning \cite{holub2008entropy}.
+
+Let the entropy over the goal belief after an observation sequence $\xi$ be given as follows:
+
+\[
+H(\xi) = -\sum_\phi P(\phi|\xi)log_{|\Phi|}(P(\phi|\xi))
+\]
+
+Assume that a new state action pair is observed, $(x',u_H')$, creating observation sequence $\xi' = \xi \cup (x', u_H')$. The information gain $I$ from this new observation is the difference in entropy before and after the observation:
+
+\[
+I(\xi, \xi') = H(\xi) - H(\xi')
+\]
+
+However, the difficulty in evaluating the information gain of a state is that $u_H'$ is not known prior to visiting the state. To solve this, we follow the approach of \citet{holub2008entropy} by calculating the expected entropy through looping over all possible user actions at the state and summing each conditional entropy weighted by the likelihood of the user picking the action according to our current belief state about the user's goal, $b(\phi)$:
+
+\[
+\hat{H}(\xi, x') = \sum_u P(u|b(\phi),x')H(\xi \cup (x', u))
+\]
+\[
+= \sum_u \sum_\phi P(u|\phi,x')P(\phi|\xi)H(\xi \cup (x', u))
+\]
+
+Using this expected entropy, we can calculate the expected information gain of going to a new state $x'$ without knowing which action the user will input:
+
+\[
+\hat{I}(\xi, x') = H(\xi) - \sum_u \sum_\phi P(u|\phi,x')P(\phi|\xi)H(\xi \cup (x', u))
+\]
+
+\subsection{Incorporating User and Robot Actions}
+While we can pick actions that maximize $\hat{I}(\xi, T(x,u))$ in order to most quickly ascertain the user's goal, or actions that maximize $R^{HO}$ in order to optimize assistance, these strategies may result in the system choosing actions that are dramatically opposed to the user's inputs, potentially creating a frustrating user experience. Accordingly, we incorporate $D_{u_H}(u)$ into our framework to penalize actions that are far from those input by the user. Two possible implementations for $D_{u_H}(u)$ are given below, which penalize actions either based on the distance between the two control vectors or the distance between the expected resulting states from applying the two control vectors:
+
+\[
+(1) D_{u_H}(u) = -||u - u_H||
+\]
+\[
+(2) D_{u_H}(u) = -dist(T(x,u), T(x, u_H))
+\]
+
+We include samples of $D_{u_H}(u)$ for complete description of our framework. However, in our implementation, we constrained robot actions to follow user actions when user actions were available and did not apply this distance penalty otherwise. Thus, our experimental results do not show the effects of using such a penalty term, and we leave the blending of user and robot actions for future work.
+
+\subsection{Balancing Actions}
+
+We modulate the weighting of information gathering actions and goal-oriented actions by the current entropy in the system: if entropy is high, information gathering actions are more likely to be taken than goal-oriented actions, and if entropy is low, goal-oriented actions are more likely to be taken than information gathering actions. We accomplish this by weighting both $\hat{I}$ and $R^{HO}$ by functions of our current entropy, $f_1$ and $f_2$ respectively. In our implementation, we use simple piecewise functions:
+\[
+f_1(H) =
+\begin{cases}
+H & H\geq 0.1 \\
+0.1 & H < 0.1
+\end{cases}
+,f_2(H) = \frac{1}{f_1(H)}
+\]
+This gives us three factors to determine the value of a candidate action: the expected information gain weighted by the current entropy, the movement toward the expected goal weighted by the inverse of the current entropy, and the distance between the candidate action and the user input. We also add tuning parameters $\alpha$, $\beta$, and $\gamma$ to adjust the magnitude of each factor. Combining all the tuning parameters gives us our weight vector $\theta = [\alpha f_1(H), \beta f_2(H), \gamma]$ that we use in order to perform action selection.
+
+\[
+u^* = argmax_u [ \theta \cdot [\hat{I}(\xi, T(x,u)), R^{HO}(x,u,b_t), D_{u_H}(u)]^T ]
+\]
+
+\subsection{Behavior}
+
+To help visualize the differences in behavior between information gathering actions and goal-oriented actions based on hindsight optimization, %Fig. \ref{heatmap1} shows heatmaps produced by discretizing a 2D space with  multiple candidate goals and scoring each state according to either expected information gain or goal-oriented reward. 
+Fig. \ref{heatmap2} illustrates a heatmap produced from multiple candidate goals, scoring each state according to either expected information gain or goal-oriented reward (for visualization purposes Fig. \ref{heatmap2} was created by discretizing a 2D space, although our system implementation actually operated with goals in continuous 3D space). In this figure, goals A and B are believed to be more likely than the other goals. Both goal-oriented and information gain scoring reward states closer to the more likely goals, but goal-oriented scoring is much more aggressive with respect to rewarding the positions closest to the two most likely goal candidates.
+
+%At a high level, the basic behavior of the two systems is similar, with higher scores close to the more likely goals. However, the details of Fig. \ref{heatmap2} show that the goal-oriented scoring favors moving directly between the two most likely goals, where the information gathering scoring has a more even distribution around the most likely goals while including states that remain further back from the two goals in a position that keeps the optimal control vectors for all goals different.
+
+%\begin{figure}
+%\includegraphics[width=\columnwidth]{figures/Heatmap_Even_Belief.pdf}
+%\caption{Heatmap of expected information gain by state (a) compared to heatmap of hindsight optimization's goal-oriented reward (b) in which all goals have equal probabilities}
+%\label{heatmap1}
+%\end{figure}
+
+\begin{figure}
+\includegraphics[width=\columnwidth]{figures/Heatmap_Uneven_Belief.pdf}
+\caption{Heatmap of expected information gain by state (a) compared to heatmap of hindsight optimization's goal-oriented reward (b) in which goals have different probabilities}
+\label{heatmap2}
+\end{figure}
+
+
+\section{Experimental Evaluation}
+
+We conducted an in-person laboratory experiment to investigate the differences in user multitasking scenarios between pure teleoperation, goal-oriented shared autonomy via hindsight optimization, and balanced information gathering shared autonomy.
+
+\subsection{System Implementation}\label{implementation}
+In order to demonstrate our shared autonomy system and evaluate the effects of information gathering and hindsight optimization during user multitasking, we created a system for controlling the end effector of a Fetch robot. We created this control system such that joystick controls on a Playstation 3 controller mapped to directions in Cartesian space, and two separate buttons could be pressed to open and close the end effector. Directional controls were discrete, with three possible controls for each axis (i.e., forward, no movement, and backward), and directional controls for each of the three axes could be combined to move diagonally. This created 27 possible directional control actions at each timestep.
+
+In our implementation, no direct manipulation of the pose of the end effector was involved in the control system, and all end effector movements followed Cartesian paths generated by MoveIt \cite{sucan2013moveit} with a max step size of 5 cm between end effector configurations, creating smooth and linear movement of the end effector. We chose to create this simplified, linear control system instead of using direct manipulation over the robot's 7-DOF arm in order to make the controls quick to pickup and the robot's movement easy to understand for novice users (pretests of an earlier version of our system showed that novice users had significant trouble operating the joints directly). Our shared autonomy system used the same set of directional controls as that provided to the user.
+
+Control updates occurred at a rate of 2 Hz to ensure that every action had visible effects (i.e., visible robot movement), even after including the motion planning delay and robot joint acceleration. We also chose to prevent the robot from overriding participant controls in this study, which was accomplished by setting an arbitrarily high value for $\gamma$, the tuning parameter that adjusts the acceptable distance between user input and system output. While we believe that there are many interesting questions to address about interweaving these control systems with active human controls, we constrained the scope of our study to focus specifically on the impact of information gathering and goal-oriented actions for multitasking users through using these systems to take over only during timesteps with no user controls. We chose tuning values for $\alpha$ and $\beta$ (the tuning parameters for information gathering and goal-oriented actions, respectively) to keep the order of magnitude the same for the reward from information gathering actions and goal-oriented actions, such that information gathering actions were weighted higher than goal-oriented actions with high entropy (e.g., $H > 0.7$), and goal-oriented optimization actions became dominant with low entropy (e.g., $H < 0.3$).
+
+\subsection{Experimental Design}
+
+We ran a $3 \times 1$, within-participants user study ($N = 12$, 9 male and 3 female) that compared three different teleoperation control systems: pure teleoperation,  pure goal-oriented shared autonomy (via hindsight optimization), and balanced information gathering as described in \S\ref{formulation}. The control systems were setup as follows:
+
+\subsubsection{Pure Teleoperation}
+In this condition, the robot did not take any actions when the participant was not actively sending controls. Belief updating was still done for analysis purposes, but the belief state was not used in any way by the robot.
+\subsubsection{Goal-Oriented}
+In this condition, $\alpha$ was set to 0, causing the hindsight optimization-based goal-oriented reward to be the only factor when choosing actions during timesteps with no participant control inputs.
+\subsubsection{Balanced Information Gathering}
+In this condition, the full system was used for choosing actions, including both goal-oriented and information gathering factors.
+
+Participants completed three trials, using a separate control system for each trial. Each trial consisted of participants operating the robot to move three of six objects from a table to two bins on the floor, as seen in Fig. \ref{exp_setup}. Participants were given ordered instructions by the experimenter of which object to grab and the bin to which that object should be moved. After each object was dropped into a bin, the arm reset itself to its starting position. This effectively created six tasks per trial: three ``pickup" tasks and three ``dropoff" tasks. The context participants were given was that of cleaning up after a ``chemical spill", requiring the use of the robot to dispose of these objects.
+
+While participants operated the robot, they were also required to monitor a laptop approximately 2 meters away that would periodically receive new ``sensor readings" (see Fig. \ref{teaser}). New sensor readings were signified by loud audio alerts. The readings started 10 seconds into the trial, and repeated every 20 seconds after that until the trial was completed. Participants were instructed to log each sensor reading within 20 seconds of each alert, before a new reading appeared. Logging the sensor readings required setting down the controller for the robot, which was attached to the robot control station (see Fig. \ref{exp_setup}). This forced the participants to multitask between operating the robot with the controller and logging sensor readings on the laptop. This also forced regular interruptions of participant control inputs, during which time the different conditions affected how the robot behaved. 
+
+Each participant completed six tasks per condition, for a total of 216 tasks (72 tasks per condition). We counted pickup tasks as a success if the participant was able to successfully grab and move an object, and we counted dropoff tasks as a success if the participant was able to move the object above the bin and drop it such that it fell either in the bin or within 10 cm of the edges of the bin.
+
+We took several steps to mitigate potential ordering effects that might arise due to our within-participants design. Our simplified linear robot control system (rather than direct 7 DOF control) was designed to be simple enough that participants could rapidly become proficient, rather than learning and improving across trials. We also had a brief practice period before each trial during which participants operated the robot using the control system that they would be using in the upcoming trial. This practice period involved grabbing a single object (separate from those used for goals in the experiment) and moving it on the table, and ended once the participant was able to successfully grab, move, and drop the object (this practice period typically lasted less than a minute). We fully counterbalanced condition order to further mitigate any remaining ordering effects. Goals and ordering of goals for object pickup and dropoff were fully randomized, as were the values of the ``sensor readings" (although the timing for the sensor readings was constant for all trials). After each trial, participants completed a survey regarding their subjective impression of that trial's control system. 
+
+During the experiment, positions of all object goals and dropoff goals were provided to the robotic system by a VICON motion capture system. The system also switched between two different goal sets depending on the status of the gripper: when the gripper was open, the system used the positions of the objects to be picked up as candidate goals, and when the gripper was closed, the system used the positions of the dropff bins as candidate goals. Each time an object sorting task was completed, that object was removed from the system's list of candidate goals and the system's belief state and recorded human action observations were reset.
+
+\subsection{Measures}
+
+Based on the differences in our control systems, we expected to see differences in the belief state updating, task efficiency, and subjective user experience. We used several objective and subjective measures to assess the performance of the pure teleoperation, goal-oriented, and balanced information gathering systems. In analyzing our results, we examined the individual \textit{pickup tasks} and \textit{dropoff tasks} completed by participants (3 of each per trial).
+
+\subsubsection{Objective Measures}
+To evaluate the objective impacts of the control systems, we looked at overall \textit{task efficiency} (number of user actions taken before task completion), \textit{belief accuracy} (the system's belief in the correct goal) at each timestep, and \textit{belief convergence speed} (the number of user actions observed before the correct goal became the system's most likely goal for the remainder of the task). We also examined behavior around \textit{shared autonomy control windows} -- any sequence of timesteps in which the participant did not input controls for at least 5 continuous timesteps, or 2.5 seconds. As the shared autonomy systems only affected the control of the physical robot while participants were not sending controls, these windows were the times during which the experimental conditions affected the robot's behavior. We chose a minimum of 5 continuous timesteps to use for analysis in order to ensure that extremely short windows during which the control system would not have sufficient time to move the arm were not counted in our analysis.
+
+\subsubsection{Subjective Measures}
+
+We used surveys after each trial to measure subjective participant experience about each condition. To create this survey, we used modified System Usability Scale (SUS) and NASA TLX scales with 7-point Likert-style questionnaire items for consistency between scales. These scales measured the \textit{usability} of each system and \textit{workload} caused by operating each system, respectively.
+
+
+\begin{figure}
+\includegraphics[width=\columnwidth]{figures/task_setup-v2.jpg}
+\caption{Experiment Setup}
+\label{exp_setup}
+\end{figure}
+
+\section{Results}
+
+\subsection{Objective Results}
+
+We found differences between our conditions in aspects of robot behavior and task efficiency. These differences were found both in qualitative observations and further analysis of the data from our study.
+
+\subsubsection{Observations}
+There was only one failure during a pickup task (balanced information gathering condition), which occurred when a participant knocked over a goal object (a Windex bottle) while attempting to grab it. This task data was still used for analysis as the arm still went through the full trajectory for grabbing the correct goal and only failed during the gripping movement. However, the dropoff task data that would have followed this pickup task was not used due to there being no dropoff task since the pickup failed. There were three total failures during dropoff tasks, two of which (one goal-oriented and one balanced information gathering conditions) occurred with the same grasped object (the same Windex bottle) slipping out of the gripper during movement toward the bin, and one (balanced information gathering condition) which occurred due to the participant dropping the object at the wrong bin mistakenly. These three tasks were not included in the rest of the analysis as they did not include full trajectories of participant control toward the correct goal.
+
+Qualitatively, we found that the system's belief in the correct goal converged much more rapidly in both the goal-oriented and balanced information gathering conditions than the pure teleoperation condition for all tasks. However, we noticed a large difference in the behavior of balanced information gathering between the pickup and dropoff conditions, where it was evident that the balanced information gathering condition was much more successful at converging to the correct belief in pickup tasks than in dropoff tasks. Fig. \ref{belief_graphs} visualizes this observation.
+
+\begin{figure}
+\includegraphics[width=\columnwidth]{figures/Graphs.pdf}
+\caption{These plots demonstrate the belief in the correct goal by number of user actions observed, averaged over all tasks within each condition. Plot (a) shows the averaged belief for all tasks (both pickup and dropoff), while Plot (b) shows the averaged belief for only the pickup tasks. These plots show that the balanced information gathering condition provided much more benefit during pickup tasks, when the number of candidate goals was higher}
+\label{belief_graphs}
+\end{figure}
+
+\subsubsection{Analysis}
+
+We analyzed this data using one-way analysis of variance (ANOVA) tests with the experimental condition as a fixed effect and the condition order and goal for each task as random covariates. To better characterize system performance across condition, we analyzed performance both across just the pickup tasks as well as across all tasks (pickup and dropoff). We did this because we noticed a difference in the impact of the balanced information gathering condition between pickup and dropoff tasks during qualitative observations, with larger effects being seen for pickup tasks. Finally, we analyzed the results from the two scales within our participant survey separately using one-way analysis of variance (ANOVA) tests with the experimental condition as a fixed effect.
+
+\subsubsection{Belief Accuracy Gain after Shared Autonomy Control}
+To test the effects of shared autonomy control windows, we scored each control window as the gain in belief accuracy that occurred during the next timestep once the participant resumed control. This demonstrates how the robot's behavior during the shared autonomy control window influenced the information that the system gained once the participant returned.
+
+%removing because probably unneeded
+%First, we looked at the belief improvement after the first shared autonomy control window during each task to evaluate the impact of the shared autonomy systems at the beginning of a task. For all tasks, we found a significant effect of condition on belief improvement, $F(2, 186.5) = 5.66$, $p < .01$. Post-hoc comparisons using Tukey's HSD test revealed a significant difference between balanced information gathering and pure teleoperation ($p < .01$), a marginally significant difference between hindsight optimization and pure teleoperation ($p = .070$), and no significant difference between balanced information gathering and hindsight optimization. For pickup tasks alone, we also found a significant effect of condition on belief improvement, $F(2, 91.31) = 12.06$, $p < .0001$. Post-hoc comparisons using Tukey's HSD test revealed a significant difference of balanced information gathering over both pure teleoperation ($p < .0001$) and hindsight optimization ($p < .001$), with no significant difference between hindsight optimization and pure teleoperation.
+
+We looked at all shared autonomy control windows during which the entropy was still higher than a threshold of 0.7. We chose this threshold due to this being the approximate value above which information gathering actions were dominant over goal-oriented actions based on our system tuning, as described in \S\ref{implementation}. For all tasks, we found a significant effect of condition on belief accuracy gain, $F(2, 243.5) = 7.72$, $p < .001$. Post-hoc comparisons using Tukey's HSD test revealed that both balanced information gathering ($p < .001$) and goal-oriented ($p < .05$) significantly outperformed pure teleoperation in terms of belief accuracy gain. We did not find a significant difference between balanced information gathering and goal-oriented. For pickup tasks alone, we also found a significant effect of condition on belief accuracy gain, $F(2, 104.7) = 16.57)$, $p < .0001$, with Tukey's HSD test showing significant differences of balanced information gathering over both pure teleoperation ($p < .0001$) and goal-oriented ($p < .0001$),  and no significant difference between goal-oriented and pure teleoperation. These results are shown in Fig. \ref{picture_results} (a).
+
+\subsubsection{Belief Convergence Speed}
+
+We observed nine total tasks (two pure teleoperation, three balanced information gathering, and four goal-oriented) which ended before the correct belief had become dominant; these trials were not included in the analysis.
+After analyzing all other tasks, we found a significant effect of condition on belief convergence speed, $F(2, 173.7) = 13.22$, $p < .0001$. Post-hoc comparisons using Tukey's HSD test revealed significant differences between balanced information gathering and pure teleoperation ($p < .01$) and between goal-oriented and pure teleoperation ($p < .0001$), but no significant difference between balanced information gathering and goal-oriented. For pickup tasks alone, we found a significant effect of condition on belief convergence speed, $F(2, 87.15) = 9.52$, $p < .001$. Post-hoc comparisons using Tukey's HSD test again revealed significant differences between balanced information gathering and pure teleoperation ($p < .001$) and between goal-oriented and pure teleoperation ($p < .01$), but no significant difference between balanced information gathering and goal-oriented. Fig. \ref{picture_results} (b) visualizes these results.
+
+\subsubsection{Task Efficiency}
+
+Finally, we analyzed the task efficiency of the participants while using each control system. For all tasks, we found a significant effect of condition on task efficiency, $F(2, 181.1) = 49.31$, $p < .0001$. Post-hoc comparisons using Tukey's HSD test revealed significant differences between all pairwise conditions ($p < .0001$), with goal-oriented being the most efficient, followed by balanced information gathering, and pure teleoperation requiring the most participant input. We found similar results for pickup tasks alone, with condition having a significant effect on task efficiency $F(2, 87.8) = 27.81$, $p < .0001$. However, for these tasks, balanced information gathering and goal-oriented both were significantly different from pure teleoperation ($p < .0001$), but not significantly different from each other ($p = 0.134$). The results from these tests can be seen in Fig. \ref{picture_results} (c).
+
+\begin{figure*}
+\includegraphics[width=\textwidth]{figures/All_Measures.pdf}
+\caption{This figure shows the results of the ANOVA tests on our results. Part (a) contains the tests on efficiency of belief gain after shared autonomy control, Part (b) contains the tests on speed of gaining dominant proper belief, Part (c) contains the tests on task efficiency, and Part (d) contains results from our subjective measures}
+\label{picture_results}
+\end{figure*}
+
+\subsection{Subjective Results}
+
+We found a significant effect of condition on system usability, $F(2, 22) = 8.21$, $p < .01$, with participants rating the balanced information gathering system significantly less usable than both the goal-oriented system ($p < .05$) and pure teleoperation ($p < .01$), but no significant difference between goal-oriented and pure teleoperation. Similarly, we found a significant effect of condition on perceived workload, $F(2, 22) = 5.60$, $p < .05$, with participants rating the balanced information gathering condition as having a higher workload than both other conditions ($p < .05$). These effects are shown in Fig. \ref{picture_results} (d).
+
+\section{Discussion}
+We found that both shared autonomy systems performed better than pure teleoperation at both belief convergence speed and task efficiency. This demonstrates that while there are fundamental differences in the way that goal-oriented and our balanced information gathering systems choose actions early in the task (while entropy is high), both systems result in performance gains over pure teleoperation in our measured areas.
+
+Our results demonstrate several trade-offs between balanced information gathering and goal-oriented control systems. While we found that information gathering actions did lead to more efficient belief updating through belief accuracy gain after shared autonomy control windows, goal-oriented control systems more rapidly reached the user's goals. The lack of a significant difference in belief convergence speed despite the difference in belief accuracy gain suggests that there were not enough windows of shared control for the belief convergence speed of the two systems to diverge significantly, perhaps showing that a longer or more involved task might benefit more from information gathering. Additionally, we noticed a much larger improvement in belief updating for information gathering systems over goal-oriented systems during our pickup tasks than during our dropoff tasks; we speculate that this is due to the more complex scene with an increased number of potential goals, but further research is necessary to investigate how balanced information gathering and goal-oriented scale across scene complexity.
+
+The finding that participants rank the balanced information gathering system as less usable and causing a higher workload backs up prior ideas that humans are resistant to being used as an ``oracle" \cite{javdani2015shared}. However, recent work in estimating user adaptability \cite{nikolaidis2017human} could be applied to weighting the amount of information gathering actions dynamically for each user, fitting with other research that has found that shared autonomy systems perform best when strength of assistance is customized per user \cite{gopinath2017human}. Additionally, it is possible that further experience with the system might mitigate the confusion caused by novice users not understanding the underlying reasoning behind the robot's information gathering motions. 
+
+The lack of a significant difference between goal-oriented and pure teleoperation in ratings of usability and workload demonstrates that multitasking scenarios are a good fit for goal-oriented control systems targetting positive user experience. Previous studies with interwoven user and shared autonomy controls have shown users tend to prefer systems which give them more control, despite potentially significant improvements in efficiency by shared autonomy systems \cite{javdani2015shared, javdani2018shared}.
+
+Our demonstrated effects of the impact of information gathering actions show that active learning can successfully be applied to teleoperation of robots. We apply active learning in a framework that balances exploration with goal-oriented actions based on entropy, enabling the system to make use of its knowledge as it gains confidence about user goals. We believe that this is not a solution for all shared autonomy situations, but specifically fits well with scenarios in which gaining the correct belief about internal user goal is of increased importance. This includes scenarios in which there are penalties for moving toward the wrong goal (e.g., guiding an aerial robot toward one of many landing spots would require regaining altitude and circling if the wrong spot was targeted) or there is a danger of user signal being dropped (e.g., remote control of search-and-rescue vehicles in a heavy signal-loss environment).
+
+\section{Conclusion}
+
+Shared autonomy provides a means to augment human teleoperator's actions with those of a robotic system. Previous work has investigated ways to choose goal-oriented assistive actions, even without \textit{a priori} knowledge of user goals. We have investigated the use of active information gathering actions within a shared autonomy paradigm in order to more quickly learn from the user's actions about their intended goal. We have designed a shared autonomy system for integrating information gathering actions and have shown both the improvements and trade-offs provided by information gathering compared to hindsight optimization during user multitasking. Our data gives some insight into what kinds of scenarios will benefit from incorporating information gathering into shared autonomy.
+
+The improvement that we found of both balanced information gathering and goal-oriented systems using hindsight optimization over pure teleoperation on both belief convergence speed and task efficiency demonstrate the power of shared autonomy for a multitasking user. In addition, we observed trade-offs between information gathering and goal-oriented systems that may inform future work investigating system scalability.
+
+\bibliographystyle{plainnat}
+\bibliography{sample}
+
+\end{document} 
