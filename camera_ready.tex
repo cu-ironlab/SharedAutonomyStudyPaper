@@ -108,7 +108,7 @@ P(u_H|\phi, x) \propto exp(R_\phi (x, u_H))
 \]
 Since our action space is discrete, we are able to normalize using a summation over possible actions:
 \[
-P(u_H|\phi, x) = \frac{exp(R_\phi (x, u_H))}{\sum_{u'} exp(R_\phi (x, u'))}
+P(u_H|\phi, x) = \frac{exp(R_\phi (x, u_H))}{\sum_{u \in U} exp(R_\phi (x, u))}
 \]
 
 Given an observation sequence of states and user inputs, $\xi^T = \{(x^0, u_H^0), (x^1, u_H^1), ..., (x^T, u_H^T)\}$, we can then define the likelihood of this observation sequence for a given $\phi$ through the following equation:
@@ -120,13 +120,13 @@ P(\xi|\phi) = \prod_tP(u_H^t|\phi, x^t)
 This assumes that the user's policy is \textit{stationary}, i.e., it does not change through the course of the observation. Consequently, the individual action choices can be considered independent. We apply Bayes theorem to obtain our estimated likelihood of the goal given the current observations:
 
 \[
-P(\phi|\xi) = \frac{P(\xi|\phi)P(\phi)}{\sum_{\phi'}P(\xi|\phi')P(\phi')}
+P(\phi|\xi) = \frac{P(\xi|\phi)P(\phi)}{\sum_{\phi' \in \Phi}P(\xi|\phi')P(\phi')}
 \]
 
 Since our \textit{a priori} distribution of goal states is uniform, we can simplify to obtain our final goal likelihood equation:
 
 \[
-P(\phi|\xi) = \frac{P(\xi|\phi)}{\sum_{\phi'}P(\xi|\phi')}
+P(\phi|\xi) = \frac{P(\xi|\phi)}{\sum_{\phi' \in \Phi}P(\xi|\phi')}
 \]
 
 \subsection{Goal-Oriented Actions through Hindsight Optimization}
@@ -140,7 +140,7 @@ We apply the hindsight optimization approximation to estimate the reward $R^{HO}
 R^{HO}_{b_t}(x,u) = \mathbb{E}_\phi[R_\phi (x, u)]
 \]
 \[
-=\sum_\phi R_\phi (x, u_H)b_t(\phi)
+=\sum_{\phi \in \Phi} R_\phi (x, u_H)b_t(\phi)
 \]
 
 \subsection{Expected Information Gain at a New State}
@@ -150,7 +150,7 @@ In order to quantify the value of the information gain expected from a state, we
 Let the entropy over the goal belief after an observation sequence $\xi$ be given as follows:
 
 \[
-H(\xi) = -\sum_\phi P(\phi|\xi)log_{|\Phi|}(P(\phi|\xi))
+H(\xi) = -\sum_{\phi \in \Phi} P(\phi|\xi)log_{|\Phi|}(P(\phi|\xi))
 \]
 
 Assume that a new state action pair is observed, $(x',u_H')$, creating observation sequence $\xi' = \xi \cup (x', u_H')$. The information gain $I$ from this new observation is the difference in entropy before and after the observation:
@@ -162,16 +162,16 @@ I(\xi, \xi') = H(\xi) - H(\xi')
 However, the difficulty in evaluating the information gain of a state is that $u_H'$ is not known prior to visiting the state. To solve this, we follow the approach of \citet{holub2008entropy} by calculating the expected entropy through looping over all possible user actions at the state and summing each conditional entropy weighted by the likelihood of the user picking the action according to our current belief state about the user's goal, $b(\phi)$:
 
 \[
-\hat{H}(\xi, x') = \sum_u P(u|b(\phi),x')H(\xi \cup (x', u))
+\hat{H}(\xi, x') = \sum_{u \in U} P(u|b(\phi),x')H(\xi \cup (x', u))
 \]
 \[
-= \sum_u \sum_\phi P(u|\phi,x')P(\phi|\xi)H(\xi \cup (x', u))
+= \sum_{u \in U} \sum_{\phi \in \Phi} P(u|\phi,x')P(\phi|\xi)H(\xi \cup (x', u))
 \]
 
 Using this expected entropy, we can calculate the expected information gain of going to a new state $x'$ without knowing which action the user will input:
 
 \[
-\hat{I}(\xi, x') = H(\xi) - \sum_u \sum_\phi P(u|\phi,x')P(\phi|\xi)H(\xi \cup (x', u))
+\hat{I}(\xi, x') = H(\xi) - \sum_{u \in U} \sum_{\phi \in \Phi} P(u|\phi,x')P(\phi|\xi)H(\xi \cup (x', u))
 \]
 
 \subsection{Incorporating User and Robot Actions}
