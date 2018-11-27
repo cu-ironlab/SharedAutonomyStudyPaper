@@ -132,7 +132,7 @@ P(\phi|\xi) = \frac{P(\xi|\phi)}{\sum_{\phi' \in \Phi}P(\xi|\phi')}
 
 \subsection{Goal-Oriented Actions through Hindsight Optimization}
 
-We incorporate goal-oriented actions into our system by including a scoring term that uses the hindsight optimization technique introduced by \citet{javdani2015shared} for estimating the state-action value function. Recall that $R_\phi(x, u)$ represents the state-action reward function for goal $\phi$. The basic approach of hindsight optimization involves estimating the reward for a state-action pair, $R(x, u)$, despite not knowing $\phi$, by summing over $\Phi$. This gives an estimate of the true state-action reward function (the reward function parameterized by the human's true goal) by weighting each goal according to the current belief state. Formally, let $b$ encode our belief state at time $t$:
+We incorporate goal-oriented actions into our system by including a scoring term that uses the hindsight optimization technique introduced by \citet{javdani2015shared} for estimating the state-action value function. Recall that $R_\phi(x, u)$ represents the state-action reward function for system state augmented by goal $\phi$. The basic approach of hindsight optimization involves estimating the reward for a state-action pair, $R(x, u)$, despite not knowing $\phi$, by summing over $\Phi$. This gives an estimate of the true state-action reward function (the reward function parameterized by the human's true goal) by weighting each goal according to the current belief state. Formally, let $b$ encode our belief state at time $t$:
 \[
 b_t(\phi) = P(\phi|\xi^t)
 \]
