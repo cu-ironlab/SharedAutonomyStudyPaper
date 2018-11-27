@@ -132,7 +132,7 @@ P(\phi|\xi) = \frac{P(\xi|\phi)}{\sum_{\phi' \in \Phi}P(\xi|\phi')}
 
 \subsection{Goal-Oriented Actions through Hindsight Optimization}
 
-We incorporate goal-oriented actions into our system by including a scoring term that uses the hindsight optimization technique introduced by \citet{javdani2015shared} for estimating the state-action value function. Recall that $R_\phi(s, u)$ represents the state-action reward function for goal $\phi$. The basic approach of hindsight optimization involves estimating the reward for a state-action pair, $R(s, u)$, despite not knowing $\phi$, by summing over $\Phi$. This gives an estimate of the true state-action reward function (the reward function parameterized by the human's true goal) by weighting each goal according to the current belief state. Formally, let $b$ encode our belief state at time $t$:
+We incorporate goal-oriented actions into our system by including a scoring term that uses the hindsight optimization technique introduced by \citet{javdani2015shared} for estimating the state-action value function. Recall that $R_\phi(x, u)$ represents the state-action reward function for goal $\phi$. The basic approach of hindsight optimization involves estimating the reward for a state-action pair, $R(x, u)$, despite not knowing $\phi$, by summing over $\Phi$. This gives an estimate of the true state-action reward function (the reward function parameterized by the human's true goal) by weighting each goal according to the current belief state. Formally, let $b$ encode our belief state at time $t$:
 \[
 b_t(\phi) = P(\phi|\xi^t)
 \]
@@ -176,7 +176,7 @@ Using this expected entropy, we can calculate the expected information gain of g
 \]
 
 \subsection{Incorporating User and Robot Actions}
-While we can pick actions that maximize $\hat{I}(\xi, T(x,u))$ in order to most quickly ascertain the user's goal, or actions that maximize $R^{HO}$ in order to optimize assistance, these strategies may result in the system choosing actions that are dramatically opposed to the user's inputs, potentially creating a frustrating user experience. Accordingly, we incorporate $D_{u_H}(u)$ into our framework to penalize actions that are far from those input by the user. Two possible implementations for $D_{u_H}(u)$ are given below, which penalize actions either based on the distance between the two control vectors or the distance between the expected resulting states from applying the two control vectors:
+While we can pick actions that maximize $\hat{I}(\xi, T(x,u))$ in order to most quickly ascertain the user's goal, or actions that maximize $R^{HO}$ in order to optimize assistance, these strategies may result in the system choosing actions that are dramatically opposed to the user's inputs, potentially creating a frustrating user experience. Accordingly, we incorporate $D_{u_H}(u)$ into our framework to provide a way to penalize actions that are far from those input by the user. Two possible implementations for $D_{u_H}(u)$ are given below, which penalize actions either based on the distance between the two control vectors or the distance between the expected resulting states from applying the two control vectors:
 
 \[
 (1) D_{u_H}(u) = -||u - u_H||
@@ -185,7 +185,7 @@ While we can pick actions that maximize $\hat{I}(\xi, T(x,u))$ in order to most 
 (2) D_{u_H}(u) = -dist(T(x,u), T(x, u_H))
 \]
 
-We include samples of $D_{u_H}(u)$ for complete description of our framework. However, in our implementation, we constrained robot actions to follow user actions when user actions were available and did not apply this distance penalty otherwise. Thus, our experimental results do not show the effects of using such a penalty term, and we leave the blending of user and robot actions for future work.
+We include samples of $D_{u_H}(u)$ for complete description of our framework. However, in our experimentation, we constrained robot actions to follow user actions when user actions were available and did not apply this distance penalty at timesteps in which the user did not provide input. Thus, our experimental results do not demonstrate the effects of such a penalty term, and we leave the evaluation of the blending of user and robot actions during information gathering for future work.
 
 \subsection{Balancing Actions}
 
