@@ -49,13 +49,14 @@ Robotic teleoperation can be a complex task due to factors such as high degree-o
 
 Shared autonomy is a robotic control paradigm that blends user input with an underlying autonomous control system \cite{dragan2012formalizing, dragan2013policy, gopinath2017human}. This control paradigm can be especially useful in cases where human users interact with high degree-of-freedom systems and are unable to provide sufficient control input, whether due to inexperience with the system, user distraction, physical or cognitive limitations, or some other factor. Shared autonomy enables robots to make use of both the information that is provided by a human user and the robot's own internal control and perception systems. In order for these two sources of control to work together effectively, it is critical that they share a common goal.
 
+Previous work has suggested that one method of facilitating better human-robot interaction is to improve robot understanding of natural and implicit cues from humans rather than only supporting explicit communication \cite{goodrich2003seven}. In shared autonomy, robots might similarly learn about user goals in an implicit manner by observing user control actions rather than requiring users to explicitly communicate their goals to the underlying system. Implicitly learning user goals may support more fluid interaction and better support scenarios in which explicit goal designation is infeasible due to limitations in user controls (e.g., only a joystick), the goal states being hard to describe due to high degree-of-freedom state space, or other factors. To learn user goals, shared autonomy systems build a belief model of possible goals by observing the control actions input by the user at different states. Intuitively, this involves abstracting the user's individual actions to see them as a part of a larger goal-oriented policy.
+
 \begin{figure}
-\includegraphics[width=\columnwidth]{figures/teaser-v2.jpg}
-\caption{A participant controls a robot during a multitasking user study}
+\includegraphics[width=0.49\columnwidth]{figures/task_setup-v3.jpg}
+\includegraphics[width=0.49\columnwidth]{figures/teaser-v2.jpg}
+\caption{A participant controls a robot during a multitasking user study. As the participant switches between actively inputting controls (left) and reading in data from a laptop away from the control station (right), the shared autonomy system on the robot provides assistance by continuing controls while the user is temporarily absent.}
 \label{teaser}
 \end{figure}
-
-Previous work has suggested that one method of facilitating better human-robot interaction is to improve robot understanding of natural and implicit cues from humans rather than only supporting explicit communication \cite{goodrich2003seven}. In shared autonomy, robots might similarly learn about user goals in an implicit manner by observing user control actions rather than requiring users to explicitly communicate their goals to the underlying system. Implicitly learning user goals may support more fluid interaction and better support scenarios in which explicit goal designation is infeasible due to limitations in user controls (e.g., only a joystick), the goal states being hard to describe due to high degree-of-freedom state space, or other factors. To learn user goals, shared autonomy systems build a belief model of possible goals by observing the control actions input by the user at different states. Intuitively, this involves abstracting the user's individual actions to see them as a part of a larger goal-oriented policy.
 
 To improve the system's performance in a framework involving system learning from observed user actions, there are two distinct factors of the framework that can be manipulated: (1) the model of how the system learns from user actions, or (2) what user actions are observed (i.e., \textit{active learning}). In this paper, we investigate active learning through information gathering actions within a shared autonomy paradigm.
 
@@ -245,9 +246,9 @@ In this condition, $\alpha$ was set to 0, causing the hindsight optimization-bas
 \subsubsection{Balanced Information Gathering}
 In this condition, the full system was used for choosing actions, including both goal-oriented and information gathering factors.
 
-Participants completed three trials, using a separate control system for each trial. Each trial consisted of participants operating the robot to move three of six objects from a table to two bins on the floor, as seen in Fig. \ref{exp_setup}. Participants were given ordered instructions by the experimenter of which object to grab and the bin to which that object should be moved. After each object was dropped into a bin, the arm reset itself to its starting position. This effectively created six tasks per trial: three ``pickup" tasks and three ``dropoff" tasks. The context participants were given was that of cleaning up after a ``chemical spill", requiring the use of the robot to dispose of these objects.
+Participants completed three trials, using a separate control system for each trial. Each trial consisted of participants operating the robot to move three of six objects from a table to two bins on the floor, as seen in Fig. \ref{teaser}. Participants were given ordered instructions by the experimenter of which object to grab and the bin to which that object should be moved. After each object was dropped into a bin, the arm reset itself to its starting position. This effectively created six tasks per trial: three ``pickup" tasks and three ``dropoff" tasks. The context participants were given was that of cleaning up after a ``chemical spill", requiring the use of the robot to dispose of these objects.
 
-While participants operated the robot, they were also required to monitor a laptop approximately 2 meters away that would periodically receive new ``sensor readings" (see Fig. \ref{teaser}). New sensor readings were signified by loud audio alerts. The readings started 10 seconds into the trial, and repeated every 20 seconds after that until the trial was completed. Participants were instructed to log each sensor reading within 20 seconds of each alert, before a new reading appeared. Logging the sensor readings required setting down the controller for the robot, which was attached to the robot control station (see Fig. \ref{exp_setup}). This forced the participants to multitask between operating the robot with the controller and logging sensor readings on the laptop. This also forced regular interruptions of participant control inputs, during which time the different conditions affected how the robot behaved. 
+While participants operated the robot, they were also required to monitor a laptop approximately 2 meters away that would periodically receive new ``sensor readings" (see Fig. \ref{teaser}). New sensor readings were signified by loud audio alerts. The readings started 10 seconds into the trial, and repeated every 20 seconds after that until the trial was completed. Participants were instructed to log each sensor reading within 20 seconds of each alert, before a new reading appeared. Logging the sensor readings required setting down the controller for the robot, which was attached to the robot control station (see Fig. \ref{teaser}). This forced the participants to multitask between operating the robot with the controller and logging sensor readings on the laptop. This also forced regular interruptions of participant control inputs, during which time the different conditions affected how the robot behaved. 
 
 Each participant completed six tasks per condition, for a total of 216 tasks (72 tasks per condition). We counted pickup tasks as a success if the participant was able to successfully grab and move an object, and we counted dropoff tasks as a success if the participant was able to move the object above the bin and drop it such that it fell either in the bin or within 10 cm of the edges of the bin.
 
@@ -266,12 +267,13 @@ To evaluate the objective impacts of the control systems, we looked at overall \
 
 We used surveys after each trial to measure subjective participant experience about each condition. To create this survey, we used modified System Usability Scale (SUS) and NASA TLX scales with 7-point Likert-style questionnaire items for consistency between scales. These scales measured the \textit{usability} of each system and \textit{workload} caused by operating each system, respectively.
 
-
-\begin{figure}
-\includegraphics[width=\columnwidth]{figures/task_setup-v2.jpg}
-\caption{Experiment Setup}
-\label{exp_setup}
-\end{figure}
+%
+%\begin{figure}
+%\includegraphics[width=\columnwidth]{figures/task_setup-v2.jpg}
+%\caption{Experiment Setup}
+%\label{exp_setup}
+%\end{figure}
+%
 
 \section{Results}
 
