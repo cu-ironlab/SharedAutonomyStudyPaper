@@ -198,6 +198,8 @@ H & H\geq 0.1 \\
 \end{cases}
 ,f_2(H) = \frac{1}{f_1(H)}
 \]
+We incorporate entropy as a weighting factor in our framework rather than using a simple linear combination in order to address the problem of exploration vs exploitation. Through our approach, our system balances learning and assistance according to goal confidence.
+
 This gives us three factors to determine the value of a candidate action: the expected information gain weighted by the current entropy, the movement toward the expected goal weighted by the inverse of the current entropy, and the distance between the candidate action and the user input. We also add tuning parameters $\alpha$, $\beta$, and $\gamma$ to adjust the magnitude of each factor. Combining all the tuning parameters gives us our weight vector $\theta = [\alpha f_1(H), \beta f_2(H), \gamma]$ that we use in order to perform action selection.
 
 \[
