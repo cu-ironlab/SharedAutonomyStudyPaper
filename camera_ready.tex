@@ -283,16 +283,16 @@ We used surveys after each trial to measure subjective participant experience ab
 
 We found differences between our conditions in aspects of robot behavior and task efficiency. These differences were found both in qualitative observations and further analysis of the data from our study.
 
+\begin{figure*}
+\includegraphics[width=\textwidth]{figures/CR_All_Measures.pdf}
+\caption{This figure shows the results of the ANOVA tests on our objective results. Part (a) contains the tests on efficiency of belief gain after shared autonomy control, Part (b) contains the tests on speed of gaining dominant proper belief, and Part (c) contains the tests on total task efficiency.}
+\label{picture_results}
+\end{figure*}
+
 \subsubsection{Observations}
 There was only one failure during a pickup task (balanced information gathering condition), which occurred when a participant knocked over a goal object (a Windex bottle) while attempting to grab it. This task data was still used for analysis as the arm still went through the full trajectory for grabbing the correct goal and only failed during the gripping movement. However, the dropoff task data that would have followed this pickup task was not used due to there being no dropoff task since the pickup failed. There were three total failures during dropoff tasks, two of which (one goal-oriented and one balanced information gathering conditions) occurred with the same grasped object (the same Windex bottle) slipping out of the gripper during movement toward the bin, and one (balanced information gathering condition) which occurred due to the participant dropping the object at the wrong bin mistakenly. These three tasks were not included in the rest of the analysis as they did not include full trajectories of participant control toward the correct goal.
 
-Qualitatively, we found that the system's belief in the correct goal converged much more rapidly in both the goal-oriented and balanced information gathering conditions than the pure teleoperation condition for all tasks. However, we noticed a large difference in the behavior of balanced information gathering between the pickup and dropoff conditions, where it was evident that the balanced information gathering condition was much more successful at converging to the correct belief in pickup tasks than in dropoff tasks. Fig. \ref{belief_graphs} visualizes this observation.
-
-\begin{figure}
-\includegraphics[width=\columnwidth]{figures/Graphs.pdf}
-\caption{These plots demonstrate the belief in the correct goal by number of user actions observed, averaged over all tasks within each condition. Plot (a) shows the averaged belief for all tasks (both pickup and dropoff), while Plot (b) shows the averaged belief for only the pickup tasks. These plots show that the balanced information gathering condition provided much more benefit during pickup tasks, when the number of candidate goals was higher}
-\label{belief_graphs}
-\end{figure}
+Qualitatively, we found that the system's belief in the correct goal converged much more rapidly in both the goal-oriented and balanced information gathering conditions than the pure teleoperation condition for all tasks. However, we noticed a large difference in the behavior of balanced information gathering between the pickup and dropoff conditions, where it was evident that the balanced information gathering condition was much more successful at converging to the correct belief in pickup tasks than in dropoff tasks.
 
 \subsubsection{Analysis}
 
@@ -316,26 +316,22 @@ After analyzing all other tasks, we found a significant effect of condition on b
 Finally, we analyzed the total task efficiency of the participants while using each control system.
 For all tasks, we found a significant effect of condition on task efficiency, $F(2, 180.6) = 40.33$, $p < .0001$. Post-hoc comparisons using Tukey's HSD test revealed significant differences of both balanced information gathering and goal-oriented over pure teleoperation ($p < .0001$), as well as a significant improvement in goal-oriented over balanced information gathering ($p = .0002$). Goal-oriented condition was the most efficient ($M = 91.79$, $SD = 47.06$), followed by balanced information gathering ($M = 117.17$, $SD = 53.61$), and pure teleoperation ($M = 137.8$, $SD = 71.75$) required the most control action timesteps. We found similar results for pickup tasks alone, with condition having a significant effect on task efficiency $F(2, 87.6) = 20.61$, $p < .0001$. However, for these tasks, goal-oriented ($M = 104.9$, $SD = 46.9$) and balanced information gathering ($M = 122.0$, $SD = 52.1$) were both significantly different from pure teleoperation ($M = 147.7$, $SD = 76.1$) at a significance level of $p < .0001$, but were not significantly different from each other ($p = 0.167$). The results from these tests can be seen in Fig. \ref{picture_results} (c).
 
-
-%TODO: update this figure (change out task efficiency bars with total task efficiency, fix error in subjective graph, add std error bars and significance levels)
-\begin{figure*}
-\includegraphics[width=\textwidth]{figures/CR_All_Measures.pdf}
-\caption{This figure shows the results of the ANOVA tests on our objective results. Part (a) contains the tests on efficiency of belief gain after shared autonomy control, Part (b) contains the tests on speed of gaining dominant proper belief, and Part (c) contains the tests on total task efficiency.}
-\label{picture_results}
-\end{figure*}
-
 \subsection{Subjective Results}
 
 We found a significant effect of condition on system usability, $F(2, 22) = 8.21$, $p < .01$, with participants rating the balanced information gathering system ($M = 4.33$, $SD = 1.02$) significantly less usable than both the goal-oriented system ($M = 5.18$, $SD = 1.16$) and pure teleoperation ($M = 5.38$, $SD = 1.04$) at significance levels of $p < .05$ and $p < .01$, respectively, but no significant difference between goal-oriented and pure teleoperation. Similarly, we found a significant effect of condition on perceived workload, $F(2, 22) = 5.60$, $p < .05$, with participants rating the balanced information gathering condition ($M = 3.67$, $SD = 1.74$) as having a significantly higher workload than both goal-oriented ($M = 3.04$, $SD = 1.14$) and pure teleoperation ($M = 3.07$, $SD = 1.29$) conditions ($p < .05$).
+
+\begin{figure}
+\includegraphics[width=\columnwidth]{figures/Info_Gain_By_Goal.pdf}
+\caption{These plots demonstrate the differences in belief gain after shared autonomy windows separated by the number of candidate goals in the task.}
+\label{goal_effect}
+\end{figure}
 
 \section{Discussion}
 We found that both shared autonomy systems performed better than pure teleoperation at both belief convergence speed and task efficiency. This demonstrates that while there are fundamental differences in the way that goal-oriented and our balanced information gathering systems choose actions early in the task (while entropy is high), both systems result in performance gains over pure teleoperation in our measured areas.
 
 Our results demonstrate trade-offs between balanced information gathering and goal-oriented control systems. While we found that information gathering actions did lead to more efficient belief updating through belief accuracy gain after shared autonomy control windows, goal-oriented control systems more rapidly reached the user's goals. The lack of a significant difference in belief convergence speed despite the difference in belief accuracy gain suggests that there were not enough windows of shared control for the belief convergence speed of the two systems to diverge significantly, perhaps showing that a longer or more involved task might benefit more from information gathering. Additionally, we noticed a much larger improvement in belief updating for information gathering systems over goal-oriented systems during our pickup tasks than during our dropoff tasks; we speculate that this is due to the more complex scene with an increased number of potential goals. 
 
-(Draft Paragraph below, need to discuss best way to include this/if we want to further investigate this by separating out by number of goals)
-
-In order to further investigate this, we separated out the belief gain after shared autonomy windows by the number of goals present in each task. All dropoff tasks had two goals, while pickup tasks has either six, five, or four goals since previously completed pickup goals were removed from the potential goal set. As figure (TODO new figure) shows, the data supports our speculation: our balanced information gathering condition improves at belief gain as the number of goals increases, while hindsight optimization follows the opposite trend. These trends suggest that information gathering will scale better with increasing number of goals than hindsight optimization, while hindsight optimization is a better choice with fewer goals.
+In order to further investigate this, we separated out the belief gain after shared autonomy windows by the number of goals present in each task. All dropoff tasks had two goals, while pickup tasks has either six, five, or four goals (since previously completed pickup goals were removed from the potential goal set). As \ref{goal_effect} shows, the data shows a trend which supports our speculation: our balanced information gathering condition improves at belief gain as the number of goals increases, while hindsight optimization follows the opposite trend. These trends suggest that information gathering will scale better with increasing number of goals than hindsight optimization, while hindsight optimization is a better choice with fewer goals, but further experimentation is necessary to confirm this trend and its implications for the scalability of our system.
 
 The finding that participants rank the balanced information gathering system as less usable and causing a higher workload backs up prior ideas that humans are resistant to being used as an ``oracle" \cite{javdani2015shared}. However, recent work in estimating user adaptability \cite{nikolaidis2017human} could be applied to weighting the amount of information gathering actions dynamically for each user, fitting with other research that has found that shared autonomy systems perform best when strength of assistance is customized per user \cite{gopinath2017human}. Additionally, it is possible that further experience with the system might mitigate the confusion caused by novice users not understanding the underlying reasoning behind the robot's information gathering motions. 
 
