@@ -41,6 +41,10 @@ daniel.szafir@colorado.edu}
 Robotic teleoperation can be a complex task due to factors such as high degree-of-freedom manipulators, operator inexperience, and limited operator situational awareness. To reduce teleoperation complexity, researchers have developed the shared autonomy control paradigm that involves joint control of a robot by a human user and an autonomous control system. We introduce the concept of active learning into shared autonomy by developing a method for systems to leverage \textit{information gathering}: minimizing the system's uncertainty about user goals by moving to information-rich states to observe user input. We create a framework for balancing information gathering actions, which help the system gain information about user goals, with goal-oriented actions, which move the robot towards the goal the system has inferred from the user. We conduct an evaluation within the context of users who are multitasking that compares pure teleoperation with two forms of shared autonomy: our balanced system and a traditional goal-oriented system. Our results show significant improvements for both shared autonomy systems over pure teleoperation in terms of belief convergence about the user's goal and task completion speed and reveal trade-offs across shared autonomy strategies that may inform future investigations in this space.
 \end{abstract}
 
+\begin{IEEEkeywords}
+Shared autonomy; robotics; active learning; inverse reinforcement learning; goal prediction; assistive teleoperation
+\end{IEEEkeywords}
+
 \section{Introduction}
 
 Shared autonomy is a robotic control paradigm that blends user input with an underlying autonomous control system \cite{dragan2012formalizing, dragan2013policy, gopinath2017human}. This control paradigm can be especially useful in cases where human users interact with high degree-of-freedom systems and are unable to provide sufficient control input, whether due to inexperience with the system, user distraction, physical or cognitive limitations, or some other factor. Shared autonomy enables robots to make use of both the information that is provided by a human user and the robot's own internal control and perception systems. In order for these two sources of control to work together effectively, it is critical that they share a common goal.
@@ -90,35 +94,35 @@ Let $ x \in X $ represent the system state. This could encompass just the robot 
 In order to use our observations of user actions at each timestep $u_H^t$ to update our estimate of $\phi$, we find the model of the user's reward function as parametrized by $\phi$ that best explains the observed user inputs. Other related research has used the principle of maximum entropy \cite{ziebart2008maximum} to create a model over trajectory probability distributions \cite{dragan2012formalizing, javdani2015shared}, while our approach uses a model over action probability distributions inspired by the approach introduced by  \citet{ramachandran2007bayesian} that has also been used for prediction of human action selection parametrized by potential goals \cite{fisac2018probabilistically}. We apply this simplification to action space instead of trajectory space because user input actions do not necessarily correspond to actions taken by the system, thus the state-user action pairs are not equivalent to a trajectory. With this in mind, we assume that the human optimizes based on individual input actions rather than over trajectories, since they do not have full control over the trajectory. Additionally, we do not assume that the goal positions are static; if goals move during execution, models built using action probability distributions are not affected since each action is parameterized by the current position of all possible goals. This simplification also allows us to compute the normalizing factor for our distribution analytically, as the action space is small and discrete, compared to using a continuous trajectory space, which would require us to estimate the normalizing factor \cite{javdani2015shared}.
 
 We define a reward function $R_\phi (x, u)$ that estimates the value of choosing action $u$ in state $x$ while attempting to reach goal $\phi$, which is assumed to be fixed. This reward function could be defined based on important features such as distance to goal or could be learned from user observations. In this work, we use a reward function corresponding to the anticipated difference in distance to the goal before and after taking action $u$:
-\[
+\begin{equation}
 R_\phi (x, u) = dist(x, \phi) - dist(T(x, u), \phi)
-\]
+\end{equation}
 Similarly to \citet{ramachandran2007bayesian}, we use a Boltzmann distribution over reward to model the user's probability of choosing an action:
-\[
+\begin{equation}
 P(u_H|\phi, x) \propto exp(R_\phi (x, u_H))
-\]
+\end{equation}
 Since our action space is discrete, we are able to normalize using a summation over possible actions:
-\[
+\begin{equation}
 P(u_H|\phi, x) = \frac{exp(R_\phi (x, u_H))}{\sum_{u \in U} exp(R_\phi (x, u))}
-\]
+\end{equation}
 
 Given an observation sequence of states and user inputs, $\xi^T = \{(x^0, u_H^0), (x^1, u_H^1), ..., (x^T, u_H^T)\}$, we can then define the likelihood of this observation sequence for a given $\phi$ through the following equation:
 
-\[
+\begin{equation}
 P(\xi|\phi) = \prod_tP(u_H^t|\phi, x^t)
-\]
+\end{equation}
 
 This assumes that the user's policy is \textit{stationary}, i.e., it does not change through the course of the observation. Consequently, the individual action choices can be considered independent. We apply Bayes theorem to obtain our estimated likelihood of the goal given the current observations:
 
-\[
+\begin{equation}
 P(\phi|\xi) = \frac{P(\xi|\phi)P(\phi)}{\sum_{\phi' \in \Phi}P(\xi|\phi')P(\phi')}
-\]
+\end{equation}
 
 Since our \textit{a priori} distribution of goal states is uniform, we can simplify to obtain our final goal likelihood equation:
 
-\[
+\begin{equation}
 P(\phi|\xi) = \frac{P(\xi|\phi)}{\sum_{\phi' \in \Phi}P(\xi|\phi')}
-\]
+\end{equation}
 
 \subsection{Goal-Oriented Actions through Hindsight Optimization}
 
@@ -127,38 +131,38 @@ We incorporate goal-oriented actions into our system by including a scoring term
 b_t(\phi) = P(\phi|\xi^t)
 \]
 We apply the hindsight optimization approximation to estimate the reward $R^{HO}$ for each state-action pair given the current belief state:
-\[
+\begin{equation}
 R^{HO}_{b_t}(x,u) = \sum_{\phi \in \Phi} R_\phi (x, u_H)b_t(\phi)
-\]
+\end{equation}
 
 \subsection{Expected Information Gain at a New State}
 
 In order to quantify the value of the information gain expected from a state, we estimate the reduction in entropy of the current belief state that will result from observing an user action at that state. To do this, we use the Minimum Expected Entropy approach developed for active learning \cite{holub2008entropy}. Let the entropy over the goal belief after an observation sequence $\xi$ be given as follows:
 
-\[
+\begin{equation}
 H(\xi) = -\sum_{\phi \in \Phi} P(\phi|\xi)log_{|\Phi|}(P(\phi|\xi))
-\]
+\end{equation}
 
 Assume that a new state action pair is observed, $(x',u_H')$, creating observation sequence $\xi' = \xi \cup (x', u_H')$. The information gain $I$ from this new observation is the difference in entropy before and after the observation:
 
-\[
+\begin{equation}
 I(\xi, \xi') = H(\xi) - H(\xi')
-\]
+\end{equation}
 
 However, the difficulty in evaluating the information gain of a state is that $u_H'$ is unknown prior to visiting the state. To solve this, we follow the approach of \citet{holub2008entropy} by calculating the expected entropy through summing over the conditional entropies from all possible user actions at the state weighted by the likelihood of the user picking the action according to our current belief state about the user's goal, $b(\phi)$:
 
 \[
 \hat{H}(\xi, x') = \sum_{u \in U} P(u|b(\phi),x')H(\xi \cup (x', u))
 \]
-\[
+\begin{equation}
 = \sum_{u \in U} \sum_{\phi \in \Phi} P(u|\phi,x')P(\phi|\xi)H(\xi \cup (x', u))
-\]
+\end{equation}
 
 Using this expected entropy, we can calculate the expected information gain of going to a new state $x'$ without knowing which action the user will input:
 
-\[
+\begin{equation}
 \hat{I}(\xi, x') = H(\xi) - \sum_{u \in U} \sum_{\phi \in \Phi} P(u|\phi,x')P(\phi|\xi)H(\xi \cup (x', u))
-\]
+\end{equation}
 
 \subsection{Incorporating User and Robot Actions}
 While we can pick actions that maximize $\hat{I}(\xi, T(x,u))$ in order to most quickly ascertain the user's goal, or actions that maximize $R^{HO}$ in order to optimize assistance, these strategies may result in the system choosing actions that are dramatically opposed to the user's inputs, potentially creating a frustrating user experience. Accordingly, we incorporate $D_{u_H}(u)$ into our framework as a function that penalizes actions far from those input by the user. Possible implementations for $D_{u_H}(u)$ could penalize actions based on the distances between either the two control vectors or the expected resulting states from applying the two control vectors. We include $D_{u_H}(u)$ for complete description of our framework, but in our experimentation, we constrained robot actions to follow user actions when given and did not apply this penalty at timesteps in which the user did not provide input. Thus, our experimental results do not demonstrate the effects of such a penalty term, and we leave the evaluation of the blending of user and system actions during information gathering for future work.
