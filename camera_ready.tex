@@ -11,7 +11,6 @@
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
-
 \setlength{\abovecaptionskip}{0pt plus 3pt minus 2pt}
 
 \setlength{\abovedisplayskip}{2pt}
@@ -42,19 +41,19 @@ Robotic teleoperation can be a complex task due to factors such as high degree-o
 \end{abstract}
 
 \begin{IEEEkeywords}
-Shared autonomy; robotics; active learning; inverse reinforcement learning; goal prediction; assistive teleoperation
+Shared autonomy; robotics; active learning; inverse reinforcement learning; assistive teleoperation
 \end{IEEEkeywords}
 
 \section{Introduction}
 
-Shared autonomy is a robotic control paradigm that blends user input with an underlying autonomous control system \cite{dragan2012formalizing, dragan2013policy, gopinath2017human}. This control paradigm can be especially useful in cases where human users interact with high degree-of-freedom systems and are unable to provide sufficient control input, whether due to inexperience with the system, user distraction, physical or cognitive limitations, or some other factor. Shared autonomy enables robots to make use of both the information that is provided by a human user and the robot's own internal control and perception systems. In order for these two sources of control to work together effectively, it is critical that they share a common goal.
+Shared autonomy is a robotic control paradigm that blends user input with an autonomous control system \cite{dragan2012formalizing, dragan2013policy, gopinath2017human}. This paradigm can be especially useful in cases where human users interact with high degree-of-freedom systems and are unable to provide sufficient control input due to inexperience with the system, user distractions, physical or cognitive limitations, or other factors. Shared autonomy enables robots to make use of both the information that is provided by a human user and the robot's own internal control and perception systems. For these two sources of control to work together effectively, it is critical that they share a common goal.
 
-Previous work has suggested that one method of enhancing human-robot interaction is to improve robot understanding of natural and implicit cues from humans rather than only supporting explicit communication \cite{goodrich2003seven}. In shared autonomy, robots might similarly learn about user goals in an implicit manner by observing user control actions rather than requiring users to explicitly communicate their goals to the underlying system. Implicitly learning user goals may support more fluid interaction and better support scenarios in which explicit goal designation is infeasible due to limitations in user controls, hard to describe goal states due to a high degree-of-freedom state space, or other factors. To learn user goals, shared autonomy systems build a belief model of possible goals by observing the user-provided control actions at different states. Intuitively, this involves abstracting the user's individual actions to see them as a part of a larger goal-oriented policy.
+Previous work has suggested that one method of enhancing human-robot interaction is to improve robot understanding of natural and implicit cues from humans rather than only supporting explicit communication \cite{goodrich2003seven}. In shared autonomy, robots might similarly learn about user goals in an implicit manner by observing user control actions rather than requiring users to explicitly specify their goals. Implicitly learning user goals may support more fluid interaction and better support scenarios in which explicit goal designation is infeasible due to limitations in user controls, difficulties in describing the state space, or other factors. To learn user goals, shared autonomy systems build a belief model of possible goals by observing the user-provided control actions at different states. Intuitively, this involves abstracting the user's individual actions to see them as a part of a larger goal-oriented policy.
 
 \begin{figure}
 \includegraphics[width=0.49\columnwidth]{figures/task_setup-v3.jpg}
 \includegraphics[width=0.49\columnwidth]{figures/teaser-v2.jpg}
-\caption{A participant controls a robot during a multitasking user study. As the participant switches between actively inputting controls (left) and reading in data from a laptop away from the control station (right), the shared autonomy system on the robot provides assistance by continuing controls while the user is temporarily absent.}
+\caption{A participant controls a robot during a multitasking user study. As the participant switches between tasks of actively inputting controls (left) and recording data on a laptop (right), the shared autonomy system provides assistance by continuing controls while the user is temporarily absent.}
 \label{teaser}
 \end{figure}
 
@@ -154,11 +153,11 @@ However, the difficulty in evaluating the information gain of a state is that $u
 \[
 \hat{H}(\xi, x') = \sum_{u \in U} P(u|b(\phi),x')H(\xi \cup (x', u))
 \]
-\begin{equation}
+\begin{equation}\label{estimated_entropy}
 = \sum_{u \in U} \sum_{\phi \in \Phi} P(u|\phi,x')P(\phi|\xi)H(\xi \cup (x', u))
 \end{equation}
 
-Using this expected entropy, we can calculate the expected information gain of going to a new state $x'$ without knowing which action the user will input:
+Using \eqref{estimated_entropy}, we can calculate the expected information gain of going to a new state $x'$:
 
 \begin{equation}
 \hat{I}(\xi, x') = H(\xi) - \sum_{u \in U} \sum_{\phi \in \Phi} P(u|\phi,x')P(\phi|\xi)H(\xi \cup (x', u))
