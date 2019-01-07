@@ -29,7 +29,7 @@ Boulder, USA \\
 connor.brooks@colorado.edu}
 \and
 \IEEEauthorblockN{Daniel Szafir}
-\IEEEauthorblockA{\textit{Department of Computer Science and ATLAS Institute} \\
+\IEEEauthorblockA{\textit{Department of Computer Science \& ATLAS Institute} \\
 \textit{University of Colorado Boulder}\\
 Boulder, USA \\
 daniel.szafir@colorado.edu}
@@ -41,7 +41,7 @@ Robotic teleoperation can be a complex task due to factors such as high degree-o
 \end{abstract}
 
 \begin{IEEEkeywords}
-Shared autonomy; robotics; active learning; inverse reinforcement learning; assistive teleoperation
+Shared autonomy; human-robot teaming; active learning; inverse reinforcement learning; assistive teleoperation
 \end{IEEEkeywords}
 
 \section{Introduction}
@@ -79,7 +79,7 @@ Our novel shared autonomy system makes use of exploration by integrating robotic
 Our work is further inspired by the work of \citet{sadigh2016information}, which developed a system for an autonomous car that tests how human drivers react to certain ``probing'' actions of the autonomous car (e.g., starting to merge in front of a human driver) in order to glean information about some factor of the driver's internal state (e.g., a driver's aggressiveness). Their approach centers on using a reward function that minimizes the entropy of the belief state over human drivers' internal states. We apply this idea of choosing actions that minimize entropy in the belief state to shared autonomy, where the belief state is over user goals. Applying this active learning framework to shared autonomy introduces new challenges from autonomous driving, including the investigation of the effects of information gathering when the human and autonomous system have shared control of the agent (as opposed to distinct agents where the active learning autonomous system has full control of its agent), balancing information gathering and goal-oriented actions while providing useful assistance to a user, and evaluating human assessments of working with an active learning shared autonomy system. The work of \citet{landolfi2017exploring} investigates the theoretical application of active learning to shared autonomy using simulated human data, but does not combine learning with goal-oriented assistance. We extend this prior research by contributing a method for balancing information gathering and goal-oriented assistance in shared autonomy, data from a user study involving working with an active learning shared autonomy system on a physical robot, and results on shared autonomy in multi-tasking scenarios.
 
 \subsection{Shared Autonomy for a Multitasking User}
-We believe that one promising class of use cases in which shared autonomy systems can prove useful is cases involving a human user that is intermittently absent: for example, scenarios in which a user is also tasked with handling other periodic duties that will cause them to relinquish robot control on a regular basis. In such scenarios, neglect tolerance, or the ability of human users to neglect the robot \cite{crandall2002characterizing, olsen2003metrics}, can provide a useful measurement regarding the capability of the robot's autonomy. The ability of the robot to carry on with its task while unsupervised allows human users to attend to other tasks, such as operating other robots \cite{crandall2005validating, cummings2008predicting}, conducting data analysis, or performing other essential operations. In this work, we investigate how shared autonomy systems might support human users in a task where users only have intermittent control of the robot and perform other tasks simultaneously (such as monitoring and logging sensor readings).
+We believe that use cases involving human teammates that are intermittently absent represent one promising class of scenarios where shared autonomy systems can prove useful. In this work, we focus on one such use case where a user is tasked with operating a robot while handling other periodic duties that cause them to relinquish robot control on a regular basis. In such scenarios, neglect tolerance, or the ability of human users to neglect the robot \cite{crandall2002characterizing, olsen2003metrics}, can provide a useful measurement regarding the capability of the robot's autonomy. The ability of the robot to carry on with its task while unsupervised allows human users to attend to other tasks, such as operating other robots \cite{crandall2005validating, cummings2008predicting}, conducting data analysis, or performing other essential operations. In this work, we investigate how shared autonomy systems might support human users in a task where users only have intermittent control of the robot and perform other tasks simultaneously (such as monitoring and logging sensor readings).
 
 \section{Information Gathering in Shared Autonomy}\label{formulation}
 
